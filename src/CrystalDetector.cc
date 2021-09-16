@@ -69,23 +69,11 @@ void CrystalDetector::Initialize(G4HCofThisEvent*HCE){
 G4bool CrystalDetector::ProcessHits(G4Step*aStep,
                                                   G4TouchableHistory*){
 
-    //if(aStep->GetTrack()->GetWeight()!=1){
-        //while(!getchar());
-        //G4cout << aStep->GetTrack()->GetWeight() << G4endl;
-    //}
     if(aStep->GetTrack()->GetTrackID()>1) return true;
 
     G4StepPoint* postStepPoint = aStep->GetPostStepPoint();
     G4StepPoint* preStepPoint = aStep->GetPreStepPoint();
 
-	// testas stepu
-    if((preStepPoint->GetStepStatus() != fGeomBoundary) && (postStepPoint->GetStepStatus() == fGeomBoundary)) {
-
-
-//G4cout << " tarpas iki medžiagos, pre step pos -> " << preStepPoint->GetPosition()/nm << "; post step pos -> " << postStepPoint->GetPosition()/nm << G4endl;
- 
-	}
-    
 
     if((postStepPoint->GetStepStatus() == fGeomBoundary)) return true;
 
@@ -96,24 +84,26 @@ G4bool CrystalDetector::ProcessHits(G4Step*aStep,
     G4TouchableHistory* theTouchable =
         (G4TouchableHistory*)(preStepPoint->GetTouchable());
     G4VPhysicalVolume* thePhysical = theTouchable->GetVolume(0);
- 	// paima tiek crystal.physic1, tiek ir 2
-    //G4cout << " vardas " << thePhysical->GetName() << G4endl;
     G4int copyNo = thePhysical->GetCopyNo();
     G4ThreeVector momWorld = preStepPoint->GetMomentum();
+    
+    G4ThreeVector momDirect = preStepPoint->GetMomentumDirection();
 
     G4ThreeVector worldPos = preStepPoint->GetPosition();
     
     CrystalDetectorHit* aHit =
         new CrystalDetectorHit(copyNo);
     aHit->SetLayerID(copyNo);
-
-
-    aHit->SetWorldPos(worldPos);
-    aHit->SetStep(aStep->GetStepLength());
-    aHit->SetKinECR(aStep->GetTrack()->GetKineticEnergy());
-    aHit->SetWorldMomentum(momWorld);
     
-    fHitsCollection->insert(aHit);
+    if(aStep->GetTrack()->GetKineticEnergy()/MeV > 0.1) // new addition 2020-09-17
+    {
+	    aHit->SetWorldMomentumDirection(momDirect);
+	    aHit->SetWorldPos(worldPos);
+	    aHit->SetStep(aStep->GetStepLength());
+	    aHit->SetKinECR(aStep->GetTrack()->GetKineticEnergy());
+	    aHit->SetWorldMomentum(momWorld);
+	    fHitsCollection->insert(aHit);
+    }
     return true;
 }
 

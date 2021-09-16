@@ -55,7 +55,6 @@
 #include "G4ChannelingOptrMultiParticleChangeCrossSection.hh"
 
 #include "CrystalDetector.hh"
-#include "SensitiveDetector.hh"
 
 #include "G4SDManager.hh"
 
@@ -67,15 +66,12 @@ fMaterialName{"G4_Si","G4_Si","G4_Si","G4_Si","G4_Si"},
 fSizes{G4ThreeVector(1.,1.,1.),G4ThreeVector(1.,1.,1.),G4ThreeVector(1.,1.,1.),G4ThreeVector(1.,1.,1.),G4ThreeVector(1.,1.,1.)},
 fAngles(G4ThreeVector(0.,0.,0.)),
 fWorldMaterial("G4_Galactic"),
-fDetectorMaterialName(""),
-fDetectorSizes(G4ThreeVector(50. * CLHEP::mm,50. * CLHEP::mm,1 * CLHEP::mm)),
-fDetectorDistance{-20. * CLHEP::cm,-19. * CLHEP::cm,+19. * CLHEP::cm,+20. * CLHEP::cm,+40. * CLHEP::cm},maxStep(1.*nm),
 position{G4ThreeVector(0.,0.,0.),G4ThreeVector(0.,0.,0.),G4ThreeVector(0.,0.,0.),G4ThreeVector(0.,0.,0.)},
-rbs_angle(160.*degree),sigma_calc(0),rbs_calc(0),rbs_step(0),material_mixing(0.), sec_material_ratio(0.),
+rbs_angle(160.*degree),sigma_calc(0),rbs_calc(0),rbs_step(0),/*add element or material for mix*/material_mixing(0.), sec_material_ratio(0.),
 detector_resolution(10.*keV),gauss_counter(5),
-/*custom material definition*/enable_custom_material(0),element1(""),element2(""),custom_density(0.),
-part1(0),part2(0),dead_thickness(0.),solidAngle(1.),
-material_for_mix(0.),mix_material_name("G4_Si") //dead_material_name(""),
+/*custom material definition*/enable_custom_material(0),element1(""),element2(""),element3(""),custom_density(0.),
+part1(0),part2(0),part3(0),dead_thickness(0.),solidAngle(1.),
+material_for_mix(0.),mix_material_name("G4_Si"),enable_fwhm_calc(0.),enable_MS_calc(0),rbs_roi_min(50.*keV),use_const_angle(0.),ms_corrections(0) //dead_material_name(""),
 {
     fMessenger = new DetectorConstructionMessenger(this); 
 }
@@ -93,8 +89,6 @@ void DetectorConstruction::DefineMaterials(){;}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4VPhysicalVolume* DetectorConstruction::Construct(){
-    
-	
 
     //** World **//
     G4Material* worldMaterial = G4NistManager::Instance()->FindOrBuildMaterial(fWorldMaterial);
@@ -127,47 +121,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
 			G4cout << " ************************ " << G4endl;
 			exit(1);
 		}
-    
-    
-    //** Detectors instantiation **//
-    G4Box* ssdSolid = new G4Box("ssd.solid",
-                                fDetectorSizes.x()/2.,
-                                fDetectorSizes.y()/2.,
-                                fDetectorSizes.z()/2.);
-    
-    G4Material* detectorMaterial;
-    if(fDetectorMaterialName == ""){
-        detectorMaterial = worldMaterial;
-    }
-    else{
-        detectorMaterial = G4NistManager::Instance()->FindOrBuildMaterial(fDetectorMaterialName);
-    }
-    
-    G4LogicalVolume* ssdLogic = new G4LogicalVolume(ssdSolid,
-                                                    detectorMaterial,
-                                                    "ssd.logic");
-    
-    for(size_t i1=0;i1<4;i1++){
-        new G4PVPlacement(0,
-                          G4ThreeVector(0.,0.,fDetectorDistance[i1]),
-                          ssdLogic,
-                          "ssd.physic",
-                          worldLogic,
-                          false,
-                          i1);
-        
-    }
 
-//    for(int i = 0;i<5;i++)
-//    {
-//    	G4String solidName = "crystal.solid" + std::to_string(i+1);
 
-   	G4Box* crystalSolid = new G4Box("crystal.Solid",
+	G4Box* crystalSolid = new G4Box("crystal.Solid",
                                     fSizes[0].x()/2.,
                                     fSizes[0].y()/2.,
                                     fSizes[0].z()/2.);
                                          
-    // another crystal by me
+    
     G4Box* crystalSolid2 = new G4Box("crystal.solid2",
                                     fSizes[1].x()/2.,
                                     fSizes[1].y()/2.,
@@ -178,54 +139,33 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
                                     fSizes[2].y()/2.,
                                     fSizes[2].z()/2.);
 
-    // another crystal by me
-    G4Box* crystalSolid4 = new G4Box("crystal.solid4",
+       G4Box* crystalSolid4 = new G4Box("crystal.solid4",
                                     fSizes[3].x()/2.,
                                     fSizes[3].y()/2.,
                                     fSizes[3].z()/2.);
                                     
-    // another crystal by me
     G4Box* crystalSolid5 = new G4Box("crystal.solid5",
                                     fSizes[4].x()/2.,
                                     fSizes[4].y()/2.,
                                     fSizes[4].z()/2.);
-
-
-
-
-	// niobium pentoxide
-  	//G4double z;                            
+                       
   	G4String name, symbol;
-  	//G4double density1 = 92.9*g/mole;
-  	//G4Element* elNb = new G4Element(name="Niobium", symbol="Nb", z=41., density1);
-  	//G4double density2 = 16.00*g/mole;
-  	//G4Element* elO = new G4Element(name="Oxygen", symbol="O", z=8., density2);
-    
+
+	// Elements    
 	G4Element* elHfn = G4NistManager::Instance()->FindOrBuildElement(72);
     	G4Element* elOx = G4NistManager::Instance()->FindOrBuildElement(8);
     	G4Element* elNb = G4NistManager::Instance()->FindOrBuildElement(41);
     	G4Element* elIn = G4NistManager::Instance()->FindOrBuildElement(49);
     	G4Element* elP = G4NistManager::Instance()->FindOrBuildElement(15);
-    
+ 	G4Element* elAr = G4NistManager::Instance()->FindOrBuildElement(18);   
     
   	G4int ncomponents, natoms;
 
-  	G4double density3 = 4.60*g/cm3;
-  	G4Material* Nb2O5 = new G4Material(name="Nb2O5", density3, ncomponents=2);
+	// Nb2O5
+  	G4double dens_nb2o5 = 4.6*g/cm3;
+  	G4Material* Nb2O5 = new G4Material(name="Nb2O5", dens_nb2o5, ncomponents=2);
   	Nb2O5->AddElement(elNb, natoms=2);
   	Nb2O5->AddElement(elOx, natoms=5);
-  	
-  	
-  	//G4cout << " nb2o5 density " << Nb2O5->GetDensity()/(g/cm3) << G4endl;
-
-
-	G4Element* elC = new G4Element(name="Carbon", symbol="C", 6., 12.*g/mole);
-	G4Element* elN = new G4Element(name="Nitrogen", symbol="N", 7., 14.*g/mole);
-
-	G4Material* CN = new G4Material(name="CN", 2.25*g/cm3, ncomponents=2);
-	CN->AddElement(elC, natoms=9);
-	CN->AddElement(elN, natoms=1);
-
 
     	G4Material* InP = new G4Material("InP",4.81 *CLHEP::g/CLHEP::cm3,2);
     	InP->AddElement(elIn,1);
@@ -234,25 +174,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
     	G4Material* HfO2 = new G4Material("HfO2",9.68 *CLHEP::g/CLHEP::cm3,2);
     	HfO2->AddElement(elHfn,1);
     	HfO2->AddElement(elOx,2);
-
 	
 
 	G4String plus = " + ";
 	G4String gap  = " ";
 	
 	
-
-    //** Crystal Definition Start **//
     G4cout << "Material Name: " << fMaterialName[0] << G4endl;
     if(fMaterialName[0] == ""){
         mat[0] = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
     }
     else if (fMaterialName[0] == "Nb2O5"){
 	mat[0] = Nb2O5;
-	}
-
-    else if (fMaterialName[0] == "CN"){
-	mat[0] = CN;
 	}
 
     else if (fMaterialName[0] == "InP"){
@@ -265,17 +198,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
         mat[0] = G4NistManager::Instance()->FindOrBuildMaterial(fMaterialName[0]);
     }
     
-    //** Crystal Definition Start **//
     G4cout << "Material Name2: " << fMaterialName[1] << G4endl;
     if(fMaterialName[1] == ""){
         mat[1] = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
     }
     else if (fMaterialName[1] == "Nb2O5"){
 	mat[1] = Nb2O5;
-	}
-
-    else if (fMaterialName[1] == "CN"){
-	mat[1] = CN;
 	}
 
     else if (fMaterialName[1] == "InP"){
@@ -288,17 +216,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
         mat[1] = G4NistManager::Instance()->FindOrBuildMaterial(fMaterialName[1]);
     }
     
-    //** Crystal Definition Start **//
     G4cout << "Material Name3: " << fMaterialName[2] << G4endl;
     if(fMaterialName[2] == ""){
         mat[2] = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
     }
     else if (fMaterialName[2] == "Nb2O5"){
 	mat[2] = Nb2O5;
-	}
-
-    else if (fMaterialName[2] == "CN"){
-	mat[2] = CN;
 	}
 
     else if (fMaterialName[2] == "InP"){
@@ -311,17 +234,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
         mat[2] = G4NistManager::Instance()->FindOrBuildMaterial(fMaterialName[2]);
     }
     
-    //** Crystal Definition Start **//
     G4cout << "Material Name4: " << fMaterialName[3] << G4endl;
     if(fMaterialName[3] == ""){
         mat[3] = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
     }
     else if (fMaterialName[3] == "Nb2O5"){
 	mat[3] = Nb2O5;
-	}
-
-    else if (fMaterialName[3] == "CN"){
-	mat[3] = CN;
 	}
 
     else if (fMaterialName[3] == "InP"){
@@ -334,17 +252,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
         mat[3] = G4NistManager::Instance()->FindOrBuildMaterial(fMaterialName[3]);
     }
     
-    //** Crystal Definition Start **//
     G4cout << "Material Name5: " << fMaterialName[4] << G4endl;
     if(fMaterialName[4] == ""){
         mat[4] = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
     }
     else if (fMaterialName[4] == "Nb2O5"){
 	mat[4] = Nb2O5;
-	}
-
-    else if (fMaterialName[4] == "CN"){
-	mat[4] = CN;
 	}
 
     else if (fMaterialName[4] == "InP"){
@@ -357,9 +270,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
         mat[4] = G4NistManager::Instance()->FindOrBuildMaterial(fMaterialName[4]);
     }
     
-
-    
-    
+	// detector dead layer
     if(dead_material_name == ""){
         dead_material = G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
     }
@@ -367,78 +278,118 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
     
     
     G4cout << "Detector dead layer: " << dead_thickness/nm << " nm of " << dead_material_name << " Z " << dead_material->GetZ() << G4endl;   
-	// end
-	
-	
 	
     G4double a = 1.*nm;
-    G4Box* phantom_layer = new G4Box("phantom.layer",
-    					a,a,dead_thickness);
+    G4Box* dead_layer_solid = new G4Box("dead_layer_solid",a,a,dead_thickness);
     	
-    	G4LogicalVolume* phantom_log = new G4LogicalVolume (phantom_layer, dead_material, "phantom_logic");				
+    G4LogicalVolume* dead_layer_log = new G4LogicalVolume (dead_layer_solid, dead_material, "dead_layer_logic");				
     					
-    	G4double b = 20.*cm;
-    G4VPhysicalVolume* phantom   = new G4PVPlacement(0,
-                      G4ThreeVector(b,b,b),
-                      phantom_log,
-                      "phantom_physic",
-                      worldLogic,
-                      false,
-                      0,
-		      true);
+    G4double b = 20.*cm;
+    G4VPhysicalVolume* dead_layer_phys   = new G4PVPlacement(0, G4ThreeVector(b,b,b), dead_layer_log, "dlayer_physic", worldLogic, false, 0,true);
     
-	
-	
-	
-	
+	// end
+		
 	if (material_mixing != 0)
-		{	
+	{	
+		G4cout << " Mixing of materials enabled " << G4endl;
 		G4int no_of_material_mix = GetMaterialForMix();	
-		G4cout << " mix no " << no_of_material_mix << G4endl;
+		G4cout << " Material " << no_of_material_mix << " name " << fMaterialName[no_of_material_mix] << G4endl;
+		G4cout << " To be mixed with " << mix_material_name << G4endl;
+
 		mixing_material = G4NistManager::Instance()->FindOrBuildMaterial(mix_material_name);
+
 		G4double den1 = mixing_material->GetDensity()/(g/cm3);
 		G4double den2 = mat[no_of_material_mix]->GetDensity()/(g/cm3);
 		G4String ratio = std::to_string(sec_material_ratio);
 		G4String ratio2 = std::to_string(1-sec_material_ratio);
-		//G4String plus = " + ";
-		//G4String gap  = " ";
 		G4String mix_name = ratio + gap + fMaterialName[no_of_material_mix] + plus + ratio2 + gap + mix_material_name;
 		G4Material* material_mix = new G4Material(name = mix_name,(den1*(1-sec_material_ratio)+den2*sec_material_ratio)*g/cm3,ncomponents = 2);
 		
-		material_mix->AddMaterial(mixing_material, 1-sec_material_ratio);
 		material_mix->AddMaterial(mat[no_of_material_mix], sec_material_ratio);
-		
-		//if (
+		material_mix->AddMaterial(mixing_material, 1-sec_material_ratio);
 		
 		mat[no_of_material_mix] = material_mix;
-		//mat2=material_mix;
-		}
-
-	if (enable_custom_material == 1){
-	//G4cout << " enabled " << G4endl;
-	//part2 = 1-part1;
-	G4String ratio1 = std::to_string(part1);
-	G4String ratio2 = std::to_string(part2);
-	G4String custom_material_name = ratio1 + element1 + plus + ratio2 + element2;
-	// addition of custom material
-	G4Element* el1 = G4NistManager::Instance()->FindOrBuildElement(element1);
-	G4cout << " el 1: name " << el1->GetName() << " Z " << el1->GetZ() << " symb " << el1->GetSymbol() << G4endl;
-	G4Element* el2 = G4NistManager::Instance()->FindOrBuildElement(element2);
-	G4cout << " el 2: name " << el2->GetName() << " Z " << el2->GetZ() << " symb " << el2->GetSymbol() << G4endl;
-	G4Material* custom_material = new G4Material(custom_material_name,custom_density,2);
-	custom_material->AddElement(el1,part1);
-	custom_material->AddElement(el2,part2);
-	
-	
-	//mat2=custom_material;
+		G4cout << " Mixed material density = " << material_mix->GetDensity()/(g/cm3) << G4endl;
 	}
 
-
-   //step limiter
-  //maxStep = 1.*nm;
-// **************************************************************
-// bandymas primesti amorfini suda
-
+	if (enable_custom_material == 1)
+	{
+		G4cout << " Enabled custom material " << G4endl;
+		//part2 = 1-part1;
+		G4int no_of_material_mix = GetMaterialForMix();
+		G4String ratio1 = std::to_string(part1);
+		G4String ratio2 = std::to_string(part2);
+		G4String ratio3 = std::to_string(part3);
+		G4String custom_material_name = ratio1 + element1 + plus + ratio2 + element2 + plus + ratio3 + element3;
+		// addition of custom material
+		G4Element* el1 = G4NistManager::Instance()->FindOrBuildElement(element1);
+		G4cout << " el 1: name " << el1->GetName() << " Z " << el1->GetZ() << " symb " << el1->GetSymbol() << " mass part " << part1 << G4endl;
+		G4Element* el2 = G4NistManager::Instance()->FindOrBuildElement(element2);
+		G4cout << " el 2: name " << el2->GetName() << " Z " << el2->GetZ() << " symb " << el2->GetSymbol() << " mass part " << part2 <<  G4endl;
+		G4Element* el3 = G4NistManager::Instance()->FindOrBuildElement(element3);
+		G4cout << " el 3: name " << el3->GetName() << " Z " << el3->GetZ() << " symb " << el3->GetSymbol() << " mass part " << part3 <<  G4endl;
+		G4Material* custom_material = new G4Material(custom_material_name,custom_density,3);
+		custom_material->AddElement(el1,part1);
+		custom_material->AddElement(el2,part2);
+		custom_material->AddElement(el3,part3);
+		mat[no_of_material_mix] = custom_material;
+	}
+	
+	
+	// separation of materials into components
+	G4String mat_name = "material";
+	G4String el_name = "element";
+    	G4double avogadro = 6.022e+23;
+	
+	 for(int i = 0; i<5; i++)
+	 {
+	 	G4int no_of_elements = mat[i]->GetNumberOfElements();
+	 	for(int j = 0; j<no_of_elements; j++)
+	 	{   
+	 		G4String total_name = mat_name + std::to_string(i) + el_name + std::to_string(j);
+	 		
+	 		G4double Z = mat[i]->GetElement(j)->GetZ();
+	 		G4double M = mat[i]->GetElement(j)->GetA()/(g/mole);
+	 		const G4double *atomDensVector = mat[i]->GetVecNbOfAtomsPerVolume();
+	 		G4double aDensity = atomDensVector[j]/(1/cm3);
+	 		G4double mDensity = aDensity*M/avogadro;
+	 	
+   	 		mat_components[i][j] = new G4Material(total_name, Z,M,mDensity*(g/cm3));
+		}
+	}
+	
+	// creation of phantom volumes for G4EmCalculator error
+	// regarding couples
+	G4double test_distance = -2*m;
+	G4String name2 = "phantom2";
+	G4String type = "logic";
+	G4String type2 = "physical";
+	
+    G4Box* phantom2 = new G4Box("phantom2",
+                                1*nm,
+                                1*nm,
+                                1*nm);
+    
+    // -20 m
+    for(int i = 0; i<5; i++)
+    {
+    G4int no_of_elements = mat[i]->GetNumberOfElements();
+    	for(int k = 0; k< no_of_elements; k++)
+    	{
+    	G4LogicalVolume* phantom2_logic = new G4LogicalVolume(phantom2,
+                                                    mat_components[i][k],
+                                                    name2+type+std::to_string(i+k));
+    
+        G4VPhysicalVolume* phantom2_physic = new G4PVPlacement(0,
+                          G4ThreeVector(0.,0.,test_distance+(i*nm)),
+                          phantom2_logic,
+                          name2+type2+std::to_string(i+k),
+                          worldLogic,
+                          false,
+                          0);
+        }
+    }
+	
 
 
 
@@ -453,15 +404,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
     if(fAngles.z()!=0.){
         rot->rotateZ(fAngles.z());
     }
-	//
 
 
 	G4LogicalVolume* crystalLogic_amo = new G4LogicalVolume (crystalSolid, mat[0], "crystal.logic_amo");
 
-	
-	// check is main crystal is amorphous
-
-	//G4cout << "\n test fCrystalAmorphous == 1 \n" << G4endl;
    	physAbsor = new G4PVPlacement(0, //
                       G4ThreeVector(),
                       crystalLogic_amo,
@@ -471,20 +417,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
                       0,
 		      true);
 
-  stepLimit = new G4UserLimits(maxStep);
-  crystalLogic_amo->SetUserLimits(stepLimit);
+ 	stepLimit = new G4UserLimits(maxStep);
+
     // end of test
 
-
-/*
-    for(int i = 1;i<5;i++)
-    {
-    	G4String logicName = "crystal.logic" + std::to_string(i+1);
-
-    	crystalLogic_amo_mid[i] = new G4LogicalVolume(crystalSolid[i],mat[i],logicName);
-	crystalLogic_amo_mid[i]->SetUserLimits(stepLimit);
-    	
-    }*/
     
 
 	G4LogicalVolume* crystalLogic2_amo = new G4LogicalVolume (crystalSolid2, mat[1], "crystal.logic2_amo");
@@ -493,52 +429,34 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
 	G4LogicalVolume* crystalLogic5_amo = new G4LogicalVolume (crystalSolid5, mat[4], "crystal.logic5_amo");
 
 
+	// setting of user limits for logic volume
+  	crystalLogic_amo->SetUserLimits(stepLimit);
+	crystalLogic2_amo->SetUserLimits(stepLimit);
+	crystalLogic3_amo->SetUserLimits(stepLimit);
+	crystalLogic4_amo->SetUserLimits(stepLimit);
+	crystalLogic5_amo->SetUserLimits(stepLimit);
 
+	// Physical volumes
 
-  		stepLimit = new G4UserLimits(maxStep);
-		crystalLogic2_amo->SetUserLimits(stepLimit);
-		crystalLogic3_amo->SetUserLimits(stepLimit);
-		crystalLogic4_amo->SetUserLimits(stepLimit);
-		crystalLogic5_amo->SetUserLimits(stepLimit);
-
-// if second material is outside first one, the check on whether the first one is amorphous or not is not made
-//if (fCrystalInside == 0){
-/*	
-		   	physAbsor2 = new G4PVPlacement(0,
-                	position[0],
-                	crystalLogic2_amo,
-                	"crystal.physic2_amo",
-                	worldLogic,	
-                	false,
-                	0,
-			true);
-*/
-//}
-// if second material is inside the first one, the check for first material must be made 
-//else if(fCrystalInside == 1)
-//{
-
-		   	physAbsor2 = new G4PVPlacement(0,
-                      	position[0],
+	physAbsor2 = new G4PVPlacement(0,
+                     	position[0],
                       	crystalLogic2_amo,
                       	"crystal.physic2_amo",
                      	crystalLogic_amo,	
                       	false,
                       	0,
 		      	true);
-//}
 
-		   	physAbsor3 = new G4PVPlacement(0,
+  	physAbsor3 = new G4PVPlacement(0,
                       	position[1],
                       	crystalLogic3_amo,
                       	"crystal.physic3_amo",
                      	crystalLogic_amo,	
                       	false,
                       	0,
-		      	true);
+		      	true);		      	
 		      	
-		      	
-		   	physAbsor4 = new G4PVPlacement(0,
+	physAbsor4 = new G4PVPlacement(0,
                       	position[2],
                       	crystalLogic4_amo,
                       	"crystal.physic4_amo",
@@ -547,7 +465,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
                       	0,
 		      	true);
 
-		   	physAbsor5 = new G4PVPlacement(0,
+	physAbsor5 = new G4PVPlacement(0,
                       	position[3],
                       	crystalLogic5_amo,
                       	"crystal.physic5_amo",
@@ -565,6 +483,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct(){
 
 void DetectorConstruction::ConstructSDandField(){
 
+	// Separate sensitive detectors
+	
         G4LogicalVolume* crystalLogic_amo = G4LogicalVolumeStore::GetInstance()->GetVolume("crystal.logic_amo");
         G4VSensitiveDetector* crystaldetector = new CrystalDetector("/crystaldetector");
         G4SDManager::GetSDMpointer()->AddNewDetector(crystaldetector);
@@ -590,17 +510,6 @@ void DetectorConstruction::ConstructSDandField(){
         G4VSensitiveDetector* crystaldetector5 = new CrystalDetector("/crystaldetector5");
         G4SDManager::GetSDMpointer()->AddNewDetector(crystaldetector5);
         crystalLogic5_amo->SetSensitiveDetector(crystaldetector5);
-        
-
-        
-    G4LogicalVolume* ssdLogic = G4LogicalVolumeStore::GetInstance()->GetVolume("ssd.logic");
-    G4VSensitiveDetector* telescope = new SensitiveDetector("/telescope");
-    G4SDManager::GetSDMpointer()->AddNewDetector(telescope);
-    for(unsigned int i1=0;i1<4;i1++){
-        ssdLogic->SetSensitiveDetector(telescope);
-    }
-    
-    
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

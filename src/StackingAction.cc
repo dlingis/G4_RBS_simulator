@@ -57,10 +57,6 @@ StackingAction::StackingAction(EventAction* EA, DetectorConstruction* DE )
 {
   killSecondary  = 0;
   stackMessenger = new StackingMessenger(this);
-  rec		=0;
-  SecRec	=0;
-  absnbrec	=0;
-  //SecSubsRec	=0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -103,11 +99,10 @@ G4double StackingAction::PartitionFunction(G4double T, G4double M1, G4double M2,
 }
 
 	// Akerman partition function
+	//https://ieeexplore.ieee.org/document/4033183
 G4double StackingAction::PartitionFunction2(G4double T, G4double M1, G4double M2, G4double Z1, G4double Z2)
 {
-
   G4double E_nu;
-
   G4double e_ch_squared = 1.4399764e-6;//*(MeV*nm);
   //screening distance
   G4double a;
@@ -150,7 +145,6 @@ G4double  StackingAction::DamageEnergy(G4double T,G4double A, G4double Z)
   G4double E_nu;
 
 	// original, for protons
-
   k_d=0.1334*std::pow(Z2,(2./3.))*std::pow(M2,(-1./2.));
   epsilon_d=0.01014*std::pow(Z2,(-7./3.))*(T/eV);
   g_epsilon_d= epsilon_d+0.40244*std::pow(epsilon_d,(3./4.))+3.4008*std::pow(epsilon_d,(1./6.));
@@ -165,100 +159,120 @@ G4double  StackingAction::DamageEnergy(G4double T,G4double A, G4double Z)
 G4ClassificationOfNewTrack
 StackingAction::ClassifyNewTrack(const G4Track* aTrack)
 {
-  G4int IDp= aTrack->GetParentID();
+    G4int IDp= aTrack->GetParentID();
   //G4int TrID = aTrack->GetTrackID();
 
-  G4double energy = aTrack->GetKineticEnergy();
-  G4double charge = aTrack->GetDefinition()->GetPDGCharge();
-  G4double u = 931.49410242;
+    G4double energy = aTrack->GetKineticEnergy();
+    G4double charge = aTrack->GetDefinition()->GetPDGCharge();
+    G4double u = 931.49410242;
 
-  G4double A1 = aTrack->GetParticleDefinition()->GetPDGMass()/u;
-  //G4cout << " A1 " << A1 << G4endl;
-  G4double Z1 = aTrack->GetParticleDefinition()->GetPDGCharge();
-  //G4cout << " Z1 " << Z1 << G4endl;
+    G4double A1 = aTrack->GetParticleDefinition()->GetPDGMass()/u;
+    G4double Z1 = aTrack->GetParticleDefinition()->GetPDGCharge();
 
-   G4double Spoint  = (aTrack->GetPosition()).mag();
+    G4double Spoint  = (aTrack->GetPosition()).mag();
 
-    G4Material*  material= detector->GetMaterialM(0);
-    G4Material*  material2 = detector->GetMaterialM(1);
+    G4Material*  material  = detector->GetMaterialM(0);
+    G4Material*  material1 = detector->GetMaterialM(1);
+    G4Material*  material2 = detector->GetMaterialM(2);
+    G4Material*  material3 = detector->GetMaterialM(3);
+    G4Material*  material4 = detector->GetMaterialM(4);   
+    
+    //G4cout << " check " << G4endl;
+    
+    G4double mA2   = material->GetDensity()/(material->GetTotNbOfAtomsPerVolume()*amu);
+    G4double mZ2   = material->GetTotNbOfElectPerVolume()/material->GetTotNbOfAtomsPerVolume();   
+    
+    G4double m1A2  = material1->GetDensity()/(material1->GetTotNbOfAtomsPerVolume()*amu);
+    G4double m1Z2  = material1->GetTotNbOfElectPerVolume()/material1->GetTotNbOfAtomsPerVolume();       
+    
+    G4double m2A2  = material2->GetDensity()/(material2->GetTotNbOfAtomsPerVolume()*amu);
+    G4double m2Z2  = material2->GetTotNbOfElectPerVolume()/material2->GetTotNbOfAtomsPerVolume();           
+         
+    G4double m3A2  = material3->GetDensity()/(material3->GetTotNbOfAtomsPerVolume()*amu);
+    G4double m3Z2  = material3->GetTotNbOfElectPerVolume()/material3->GetTotNbOfAtomsPerVolume();   
 
-    G4double A2  = material->GetDensity()/(material->GetTotNbOfAtomsPerVolume()*amu);
-    G4double Z2  = material->GetTotNbOfElectPerVolume()/material->GetTotNbOfAtomsPerVolume();
-
-    G4double mA2  = material2->GetDensity()/(material2->GetTotNbOfAtomsPerVolume()*amu);
-    G4double mZ2  = material2->GetTotNbOfElectPerVolume()/material2->GetTotNbOfAtomsPerVolume();
-	//G4cout << " charge " << A2 << " " << Z2 << G4endl;
-
-   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    G4double m4A2  = material4->GetDensity()/(material4->GetTotNbOfAtomsPerVolume()*amu);
+    G4double m4Z2  = material4->GetTotNbOfElectPerVolume()/material4->GetTotNbOfAtomsPerVolume();   
 
   //keep primary particle
-  if (IDp == 0) {
-
-  return fUrgent;}
+  if (IDp == 0) {return fUrgent;}
   Run* run = static_cast<Run*>(
-        G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  
+  G4double partition = 0.;
+  G4double dam_energy = 0.;
+  	G4VPhysicalVolume* touchable_vol = aTrack->GetTouchableHandle()->GetVolume();
+	if (IDp > 0 && charge > 0) 
+	{
 
-	// second material
-	if (aTrack->GetTouchableHandle()->GetVolume() == detector->GetAbsorber2()) {
-  		if (IDp > 0 && charge > 0) {
-			G4double part2 = PartitionFunction2(energy, A1, A2, Z1, Z2);
-			G4double part = PartitionFunction(energy, A1, A2, Z1, Z2);
-			G4double LT = DamageEnergy(energy,mA2,mZ2);
-			G4double TL2 = energy*part;
-			G4double TL3 = energy*part2;
-			G4double TL = energy*LT;
-			//G4cout << " partitions:, akkerman: " << part << ", Lindhard: " << LT << ", Lindhard v2: " << part2 <<  G4endl;
+	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
-		  	run->abssumTL(TL);
-			run->abssumTL2(TL2);
-			run->abssumTL3(TL3);
-  			run->abssumT(energy);
-  			run->absnbrec(1);
-  			absnbrec++;
-
-			analysisManager->FillH1(14, Spoint, TL);
+		// MAIN LAYER
+		if (aTrack->GetTouchableHandle()->GetVolume() == detector->GetIntAbsorber(0))
+		{
+			partition = PartitionFunction2(energy, A1,mA2,Z1,mZ2);
+			dam_energy = partition * energy;
+			
+			run->abssumTL(dam_energy);	// damage energy
+			run->absnbrec(1);		// recoil
+			run->abssumT(energy);		// kinetic energy
+			analysisManager->FillH1(14, Spoint, dam_energy);	
+			run->NumberRec(1);	
 		}
+		// FIRST LAYER
+		else if(touchable_vol == detector->GetIntAbsorber(1))
+		{
+			partition = PartitionFunction2(energy, A1,m1A2,Z1,m1Z2);
+			dam_energy = partition * energy;
+			
+			run->abs1sumTL(dam_energy);	// damage energy
+			run->abs1nbrec(1);		// recoil
+			run->abs1sumT(energy);		// kinetic energy	
+			analysisManager->FillH1(14, Spoint, dam_energy);	
+			run->NumberRec(1);				
+		}
+		// SECOND LAYER
+		else if(touchable_vol == detector->GetIntAbsorber(2))
+		{
+			partition = PartitionFunction2(energy, A1,m2A2,Z1,m2Z2);
+			dam_energy = partition * energy;
+			
+			run->abs2sumTL(dam_energy);	// damage energy
+			run->abs2nbrec(1);		// recoil
+			run->abs2sumT(energy);		// kinetic energy		
+			analysisManager->FillH1(14, Spoint, dam_energy);
+			run->NumberRec(1);	
+		}
+		// THIRD LAYER
+		else if(touchable_vol == detector->GetIntAbsorber(3))
+		{
+			partition = PartitionFunction2(energy, A1,m3A2,Z1,m3Z2);
+			dam_energy = partition * energy;
+			
+			run->abs3sumTL(dam_energy);	// damage energy
+			run->abs3nbrec(1);		// recoil
+			run->abs3sumT(energy);		// kinetic energy		
+			analysisManager->FillH1(14, Spoint, dam_energy);
+			run->NumberRec(1);	
+		}	
+		// FOURTH LAYER
+		else if(touchable_vol == detector->GetIntAbsorber(4))
+		{
+			partition = PartitionFunction2(energy, A1,m4A2,Z1,m4Z2);
+			dam_energy = partition * energy;
+			
+			run->abs4sumTL(dam_energy);	// damage energy
+			run->abs4nbrec(1);		// recoil
+			run->abs4sumT(energy);		// kinetic energy		
+			analysisManager->FillH1(14, Spoint, dam_energy);
+			run->NumberRec(1);	
+		}						
 	}
-
-
-//tik absorberis
-if (aTrack->GetTouchableHandle()->GetVolume() == detector->GetAbsorber()) {
-  if (IDp > 0 && charge > 0) {
-    run->NumberRec(1);
-    rec++;
-			G4double part2 = PartitionFunction2(energy, A1, A2, Z1, Z2);
-			G4double part = PartitionFunction(energy, A1, A2, Z1, Z2);
-    //Lindhard partition                
-    G4double LT = DamageEnergy(energy,A2,Z2);
-			//G4cout << " partitions:, akkerman: " << part << ", Lindhard: " << LT << ", Lindhard v2: " << part2 <<  G4endl;
-    //daugyba
-    G4double TL=energy*LT;
-    G4double TL2=energy*part;
-    G4double TL3=energy*part2;
-    //total sum of T*L(T)
-    run->SumTL(energy*LT); 
-    run->SumTL2(TL2);
-    run->SumTL3(TL3);
-    //total sum of T
-    run->SumT(energy);
-
-
-   analysisManager->FillH1(14, Spoint, TL);
-    }
-
-  else if (IDp > 1 && charge > 0 ) { 
-   run->NumberSecRec(1);
-   run->SumTt(energy);
-   SecRec++;
-  }}
 
   //stack or delete secondaries
   G4ClassificationOfNewTrack status = fUrgent;
   if (killSecondary) 
     {if (killSecondary == 1) {
-      //add secondary energy before killing
-      //eventaction->AddEnergy(energy);
-      //eventaction->AddNonIonEnergy(energy);
       status = fKill;
         }
     }

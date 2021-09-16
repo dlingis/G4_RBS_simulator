@@ -81,9 +81,6 @@ private:
     G4ThreeVector fAngles;
     G4String fWorldMaterial;
 
-    //G4LogicalVolume*				crystalLogic_amo;
-    //G4LogicalVolume*				crystalLogic_amo_mid[4];
-
 public:
     
     G4String GetMaterial(G4int i) 			{return fMaterialName[i];}
@@ -94,10 +91,18 @@ public:
     void SetSize(G4int i, G4ThreeVector a3vec) 	{fSizes[i] = a3vec;}
 
 
-    G4ThreeVector GetAngles() 			{return fAngles;}
+    G4ThreeVector GetAngles() 				{return fAngles;}
     void SetAngles(G4ThreeVector a3vec) 		{fAngles = a3vec;}
 
-
+     G4VPhysicalVolume* GetIntAbsorber(G4int i)	{
+     						if(i == 0) return physAbsor;
+     						else if(i == 1) return physAbsor2;
+     						else if(i == 2) return physAbsor3;
+     						else if(i == 3) return physAbsor4;
+     						else if(i == 4) return physAbsor5;
+     						else return physAbsor;
+     						};
+     
 // mano
      G4VPhysicalVolume* GetAbsorber()   	{return physAbsor;};
      G4VPhysicalVolume* GetAbsorber2()   	{return physAbsor2;};
@@ -107,16 +112,14 @@ public:
      
      const G4VPhysicalVolume* GetWorld()   	{return worldPhysical;};
      
-     G4Material* GetMaterialM(G4int i)	{return mat[i];};
+     G4Material* GetMaterialM(G4int i)		{return mat[i];};
+     
+     
+     G4Material* GetMaterialComponents(G4int i, G4int j)	{return mat_components[i][j];};
 
      G4double GetLength(G4int i)		{return fSizes[i].z();};
 
-     G4ThreeVector GetDimensions(G4int i )		{return fSizes[i];};
-/*     G4ThreeVector GetDimensions2()		{return fSizes[1];};
-     G4ThreeVector GetDimensions3()		{return fSizes[2];};
-     G4ThreeVector GetDimensions4()		{return fSizes[3];};
-     G4ThreeVector GetDimensions5()		{return fSizes[4];};
-*/
+     G4ThreeVector GetDimensions(G4int i )	{return fSizes[i];};
 
      void SetPosition(G4int i, G4ThreeVector a3vec) 	{position[i] = a3vec;};
      G4ThreeVector GetPosition(G4int i) 		{return position[i];};	
@@ -126,19 +129,6 @@ public:
 public:
     void SetWorldMaterial(G4String aString) {fWorldMaterial = aString;}
     G4String GetWorldMaterial() 		{return fWorldMaterial;}
-
-    void SetDetectorMaterial(G4String aString) 	{fDetectorMaterialName = aString;}
-    G4String GetDetectorMaterial() 		{return fDetectorMaterialName;}
-    
-    void SetDetectorSizes(G4ThreeVector a3vec) 	{fDetectorSizes = a3vec;}
-    G4ThreeVector GetDetectorSizes() 		{return fDetectorSizes;}
-
-    void SetDetectorDistance(G4int aInt,G4double aDouble) {fDetectorDistance[aInt] = aDouble;}
-    G4double GetDetectorDistance(G4int aInt) 	{return fDetectorDistance[aInt];}
-
-    //pridetas amorfizavimas, testui
-    //void SetInside(bool a) 			{fCrystalInside = a;};
-    //G4int GetCrystalInside() 			{return fCrystalInside;}
 
     G4double GetMaxStep()			{return maxStep;}
     void SetMaxStep(G4double stp)		{maxStep = stp;}
@@ -166,8 +156,7 @@ public:
     
     void SetGaussCounter(G4int a)		{gauss_counter = a;}
     G4int GetGaussCounter()			{return gauss_counter;}
-    
-    
+ 
     // custom material
     
     void SetCustomMaterial(bool a)		{enable_custom_material = a;}
@@ -179,6 +168,9 @@ public:
     void SetCustomElement2(G4String a)	{element2 = a;}
     G4String GetCustomElement2()		{return element2;}
     
+    void SetCustomElement3(G4String a)	{element3 = a;}
+    G4String GetCustomElement3()		{return element3;}
+    
     void SetCustomMaterialDensity(G4double a)	{custom_density = a;}
     G4String GetCustomMaterialDensity()	{return custom_density;}
     
@@ -188,11 +180,15 @@ public:
     void SetCustomElement2Part(G4double a)	{part2 = a;}
     G4String GetCustomElement2Part()		{return part2;}
     
+    void SetCustomElement3Part(G4double a)	{part3 = a;}
+    G4String GetCustomElement3Part()		{return part3;}    
+
+    
     void SetDeadLayer(G4String a)		{dead_material_name = a;};
     G4String GetDeadLayer()			{return dead_material_name;};
     void SetDeadLayerThickness(G4double a)	{dead_thickness = a;};
     G4double GetDeadLayerThickness()		{return dead_thickness;};
-    G4Material* GetDeadLayerMaterial()	{return dead_material;};
+    G4Material* GetDeadLayerMaterial()		{return dead_material;};
     
     void SetSolidAngle(G4double a)		{solidAngle = a;};
     G4double GetSolidAngle()			{return solidAngle;};
@@ -205,33 +201,48 @@ public:
     G4String GetMixingMaterial() 		{return mix_material_name;}
     void SetMixingMaterial(G4String a) 	{mix_material_name = a;}
     //
+    
+    // calculate detector fwhm
+    G4int GetCalcFWHM()			{return enable_fwhm_calc;}
+    void SetCalcFWHM(bool a)			{enable_fwhm_calc = a;}
+
+    // Calculate MS induced energy spread    
+    G4int GetMSCalc()				{return enable_MS_calc;}
+    void SetMSCalc(bool a)			{enable_MS_calc = a;}        
+    
+    G4double GetRBSROImin()			{return rbs_roi_min;}
+    void SetRBSROImin(G4double a)		{rbs_roi_min = a;}
+    
+    G4int GetConstAngle()			{return use_const_angle;}
+    void UseConstAngle(bool a)			{use_const_angle = a;}
+    
+    G4int GetUseMSCorrections()		{return ms_corrections;}
+    void SetUseMSCorrections(bool a)		{ms_corrections = a;}
+    
 	
 private:
-    G4String fDetectorMaterialName;
-    G4ThreeVector fDetectorSizes;
-    G4double fDetectorDistance[5];
-
-    //G4bool fCrystalInside;
 
     G4double maxStep;
     G4ThreeVector position[4];
 
-    G4double rbs_angle;
-    G4int sigma_calc;
-    G4int rbs_calc;
-    G4double rbs_step;
+    G4double 				rbs_angle;
+    G4int 				sigma_calc;
+    G4int 				rbs_calc;
+    G4double 				rbs_step;
 
-    G4double material_mixing;    
-    G4double sec_material_ratio;
-    G4double detector_resolution;
-    G4int gauss_counter;
+    G4double 				material_mixing;    
+    G4double 				sec_material_ratio;
+    G4double 				detector_resolution;
+    G4int 				gauss_counter;
     
     G4int				enable_custom_material;
     G4String				element1;
     G4String				element2;
+    G4String				element3;
     G4double				custom_density;
     G4double 				part1;
     G4double				part2;
+    G4double				part3;
     
     
     G4String				dead_material_name;
@@ -243,12 +254,18 @@ private:
     G4int 				material_for_mix;
     G4String				mix_material_name;
     
-    //mano
-    //G4Material* material;
+    G4int 				enable_fwhm_calc;
+    G4int				enable_MS_calc;
+    G4int				enable_NN_calc;
+    G4double 				rbs_roi_min;
+    G4int				use_const_angle;
+    G4int				ms_corrections;
+    
     G4Material* mat[5];
     G4Material*			dead_material;
     G4Material*			mixing_material;
-    //G4Box* 	crystalSolid[5];
+    
+    G4Material* 			mat_components[5][5];
 
 
 };

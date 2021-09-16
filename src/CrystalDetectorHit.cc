@@ -72,6 +72,7 @@ CrystalDetectorHit::CrystalDetectorHit(
     fStep = right.fStep;
     fKinECR = right.fKinECR;
     fWorldMomentum = right.fWorldMomentum;
+    fWorldMomentumDirection = right.fWorldMomentumDirection;
 
 }
 
@@ -85,6 +86,7 @@ CrystalDetectorHit::operator=(
     fStep = right.fStep;
     fKinECR = right.fKinECR;
     fWorldMomentum = right.fWorldMomentum;
+    fWorldMomentumDirection = right.fWorldMomentumDirection;    
     return *this;
 }
 

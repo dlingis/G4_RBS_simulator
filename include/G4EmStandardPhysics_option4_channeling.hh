@@ -47,13 +47,11 @@
 #include "G4VPhysicsConstructor.hh"
 #include "globals.hh"
 
+#include "G4PhysicsFreeVector.hh"
+#include "G4ExtDEDXTable.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class G4HadronicInteraction;
-class G4VCrossSectionDataSet;
-class G4VComponentCrossSection;
-class G4FTFBuilder;
-class G4BinaryLightIonReaction;
 
 
 
@@ -67,19 +65,23 @@ public:
 
   virtual void ConstructParticle();
   virtual void ConstructProcess();
-
-
+  
+  //G4ExtDEDXTable* srim_table = new G4ExtDEDXTable();
 
 private:
   G4int  verbose;
-
-
-    static G4ThreadLocal G4VCrossSectionDataSet* theNuclNuclData;
-    static G4ThreadLocal G4VComponentCrossSection* theGGNuclNuclXS;
+  /*
+    G4PhysicsFreeVector* fVectorLiHf;
+    G4PhysicsFreeVector* fVectorLiO;
+    G4PhysicsFreeVector* fVectorLiAr;
+    G4PhysicsFreeVector* fVectorLiSi;     
+    G4PhysicsFreeVector* fVectorLiAu;
+    G4PhysicsFreeVector* fVectorLiHfO2;   
+    G4PhysicsFreeVector* fVectorLiSiO2;                
     
-    static G4ThreadLocal G4BinaryLightIonReaction* theIonBC;
-    static G4ThreadLocal G4HadronicInteraction*    theFTFP;
-    static G4ThreadLocal G4FTFBuilder*             theBuilder;
+
+    G4PhysicsFreeVector* FillStopVector(G4String filename, G4int atomic_no);    
+*/
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

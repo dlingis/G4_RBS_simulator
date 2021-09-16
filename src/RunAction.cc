@@ -64,7 +64,7 @@ RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim)
 
 RunAction::~RunAction()
 {
- delete fHistoManager;
+ //delete fHistoManager;
  //delete G4AnalysisManager::Instance(); // pridejau sita, nezinau ar reikia
 }
 
@@ -111,6 +111,9 @@ void RunAction::EndOfRunAction(const G4Run*)
   if ( analysisManager->IsActive() ) {
     analysisManager->Write();
     analysisManager->CloseFile();
+    delete analysisManager;	// new add
+    //fAnalysisManager = 0;    
+    
   }
  
   // show Rndm status

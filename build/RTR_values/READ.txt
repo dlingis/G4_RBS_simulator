@@ -1,0 +1,3 @@
+Values obtained from SigmaCalc web calculator developed by A. Gurbich
+http://sigmacalc.iate.obninsk.ru/
+https://www-nds.iaea.org/exfor/ibandl.htm

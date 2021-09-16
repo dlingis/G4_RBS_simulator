@@ -68,6 +68,8 @@
 #include "G4HadronElasticPhysics.hh"
 #include "G4HadronPhysicsFTFP_BERT.hh"
 
+#include "G4EmStandardPhysics_option4.hh"
+
 
 
 
@@ -77,6 +79,7 @@ int main(int argc,char** argv) {
  
   //choose the Random engine
   G4Random::setTheEngine(new CLHEP::RanecuEngine);
+  //G4Random::setTheEngine(new CLHEP::RanshiEngine);
  
   // Construct the default run manager
 #ifdef G4MULTITHREADED
@@ -94,20 +97,18 @@ int main(int argc,char** argv) {
   // channeling bullshit
     G4ScoringManager * scManager = G4ScoringManager::GetScoringManager();
     scManager->SetVerboseLevel(0);
-
+    
     // Set mandatory initialization classes
     //G4VModularPhysicsList* physlist= new FTFP_BERT();
     G4VModularPhysicsList* physlist= new QGSP_BIC();
+    //G4VModularPhysicsList* physlist= new G4EmStandardPhysics_option4();
     //G4GenericBiasingPhysics* biasingPhysics = new G4GenericBiasingPhysics();
     //physlist->RegisterPhysics(new G4ChannelingPhysics());
     physlist->ReplacePhysics(new G4EmStandardPhysics_option4_channeling());
+    //physlist->ReplacePhysics(new G4EmStandardPhysics_option4());
     //biasingPhysics->PhysicsBiasAllCharged();
     //physlist->RegisterPhysics(biasingPhysics);
     runManager->SetUserInitialization(physlist);
-
-  // End of channel bullshit
-  //*************************
-
 
   // set mandatory initialization classes
   DetectorConstruction* det= new DetectorConstruction;

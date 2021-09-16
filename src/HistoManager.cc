@@ -77,7 +77,7 @@ void HistoManager::Book()
 
 
   // Define histograms start values
-  const G4int kMaxHisto = 51; // 47
+  const G4int kMaxHisto = 53; // 47
   const G4String id[] = {"0",
   			"Total_energy_deposit",
   			"EDEP_(MeV/mm)",
@@ -98,14 +98,14 @@ void HistoManager::Book()
                        "17",
                        "18",
 			"19",
-			"RBS_total_en",
-			"RBS_total_dist",
-			"RBS_subs_en",
-			"RBS_subs_dist",
-			"RBS_subs_el1_en",
-			"RBS_subs_el2_en",
-			"RBS_subs_el1_dist",
-			"RBS_subs_el2_dist",
+			"RBS_total_energy",
+			"RBS_total_distance",
+			"RBS_substrate_energy",
+			"RBS_substrate_distance",
+			"RBS_substrate_el1_en",
+			"RBS_substrate_el2_en",
+			"RBS_substrate_el1_dist",
+			"RBS_substrate_el2_dist",
 			"RBS_la1_en",
 			"RBS_la1_dist",
 			"RBS_la1_el1_en",
@@ -130,6 +130,7 @@ void HistoManager::Book()
 			"RBS_la4_el2_en",
 			"RBS_la4_el1_dist",
 			"RBS_la4_el2_dist",
+			"TEST_HISTO"
 			
 };
   const G4String title[] = 
@@ -147,7 +148,7 @@ void HistoManager::Book()
                   "all others baryons flux (dN/dE) at exit",      		//11
                   "all others mesons flux (dN/dE) at exit",       		//12
                   "all others leptons flux (dN/dE) at exit",       		//13 
- 		  "Frenkelio poru koncentracija nuo saltinio(#/cm3)",         //14
+ 		  "Frenkelio poru koncentracija nuo saltinio(#/cm3)",           //14
 		  " Sklaidos kampas ",						//15
 		  " Projected range distribution ",				//16	
 		  " NIEL pagal atstuma, keV	",				//17 
@@ -184,7 +185,8 @@ void HistoManager::Book()
 		  " RBS Layer 4 el 1 ",					//48
 		  " RBS Layer 4 el 2 ",					//49
 		  " RBS Layer 4 el 1 distance",				//50
-		  " RBS Layer 4 el 2 distance"				//51		  
+		  " RBS Layer 4 el 2 distance",				//51	
+		  " TEST HISTO "	  
 		};  
 
   // Default values (to be reset via /analysis/h1/set command) 

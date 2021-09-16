@@ -1,0 +1,173 @@
+# For detectors
+/mydet/setDetMaterial G4_Galactic
+# mazinant detektoriaus dydi praeina daugiau daleliu
+/mydet/setSize 100. 100. 1. cm
+/mydet/setDistance1 -15. cm
+/mydet/setDistance2  -10. cm
+/mydet/setDistance3  +10. cm
+/mydet/setDistance4  +15. cm
+
+#######################
+#### Set materials ####
+#######################
+/xtal/setMaterial1 G4_Si
+/xtal/setMaterial2 HfO2
+/xtal/setMaterial3 G4_SILICON_DIOXIDE
+/xtal/setMaterial4 G4_SILICON_DIOXIDE
+/xtal/setMaterial5 G4_SILICON_DIOXIDE
+# G4_SILICON_DIOXIDE
+#######################
+### Custom material ###
+#######################
+/xtal/SetMaterialMixing
+/xtal/SetNoOfMaterialMix 1
+/xtal/SetMixingMaterialName G4_Ar
+/xtal/SetMaterialMixingRatio 0.96
+#######################
+#### FWHM AND ETC #####
+#######################
+# Detector energy resolution and dead layer
+#/xtal/SetFWHMCalc 1
+/xtal/SetDetectorResolution 12. keV
+/xtal/SetGaussSteps 300
+/xtal/SetDeadMaterialName G4_Au
+/xtal/SetDeadLayerThick 20.8 nm
+/xtal/SetSolidAngle 7.
+########################
+##### LAYERS SIZES #####
+########################
+# Set the size of layers
+/xtal/setSize1 100. 100. 0.02 mm #0.04 mm 
+/xtal/setSize2  99. 99. 0.00002 mm
+/xtal/setSize3  99. 99. 0.00002 mm 
+/xtal/setSize4  99. 99. 0.00002 mm 
+/xtal/setSize5  99. 99. 0.00002 mm 
+
+###########################
+##### LAYER POSITIONS #####
+###########################
+# Set layer positions
+#/xtal/setAngle 0. 0. 0. degree
+/xtal/setPos1 0. 0. -0.009 mm
+/xtal/setPos2 0. 0. -0.008 mm
+/xtal/setPos3 0. 0. -0.007 mm
+/xtal/setPos4 0. 0. -0.006 mm
+
+###########################
+##### RBS PARAMETERS ######
+###########################
+# step size limiter
+/xtal/setMaxStep 20. nm
+###### ANGLE #######
+/xtal/setRBSAngle 135. degree
+###### RTR values ######
+/xtal/SetSigmaCalc
+###### RBS evaluation ######
+/xtal/SetRBSEvaluation
+###### Energy steps ######
+# Set number of steps in energy loss evaluation
+/xtal/SetEnLossStep 50
+###### Multiple scattering ######
+# enable multiple scattering energy spread evaluation
+#/xtal/SetMSEvaluation
+###### RBS ROI ######
+# RBS minimum ROI
+/xtal/setRBSROI 100. keV
+# Use of constant scattering angle
+#/xtal/UseConstScatAngle
+###########################
+##### INITIALIZATION ######
+###########################
+#initialize run before stacking and primary generator actions
+/run/initialize 
+#######################
+# Particle properties
+#######################
+#set gps properties
+/gps/particle proton
+
+#/gps/ene/type Gauss
+/gps/ene/mono 2. MeV 
+#/gps/ene/sigma 20. keV
+/gps/pos/type Point
+#/gps/pos/centre 0 0 -1. m
+
+#/gps/ang/type focused
+
+#/gps/ang/type beam2d
+#/gps/ang/rot1 1  0  0
+#/gps/ang/rot2 0 -1  0
+
+#/gps/pos/type Plane
+/gps/pos/centre 0 0 -0.1 mm
+#/gps/pos/shape Circle
+#/gps/pos/radius 0.000001 mm # org 0.0001 mm
+
+/gps/direction 0 0 1
+
+
+
+#kill all secondaries produced
+#/mystack/KillAllSecondaries 1
+
+/run/printProgress 5
+
+###########################
+####### HISTOGRAMS ########
+###########################
+/analysis/setFileName test
+#
+/analysis/h1/set 1  100  0.0001 2. MeV #Edep
+/analysis/h1/set 2 100  0.   0.03 mm	#Edep profile
+/analysis/h1/set 3  100  0. 2. MeV	#Eflow
+/analysis/h1/set 7  200  0. 2. MeV 	#protons at exit Eflow
+/analysis/h1/set 10 100 0. 2. MeV 	# all other particles at exit
+/analysis/h1/set 14  100  0. 0.02 mm #FP koncentracija
+/analysis/h1/set 15  100  0. 0.03 mm #sklaidos kampai
+/analysis/h1/set 16  100  0. 0.03 mm # projected track length
+/analysis/h1/set 17  100  0. 0.03 mm # niel pasiskirstymas
+/analysis/h1/set 18  100  0. 0.001 MeV # niel step
+/analysis/h1/set 19  100  0. 0.001 MeV # edep step
+# TOTAL RBS SPECTRUM
+/analysis/h1/set 20  1000  0. 2.0 MeV  # RBS Yield
+/analysis/h1/set 21  1000  0. 10. um  # RBS Yield
+# SUBSTRATE
+/analysis/h1/set 22  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 23  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 24  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 25  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 26  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 27  1000  0. 10. um  # RBS Yield
+# LAYER1
+/analysis/h1/set 28  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 29  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 30  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 31  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 32  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 33  1000  0. 10. um  # RBS Yield
+# LAYER2
+/analysis/h1/set 34  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 35  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 36  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 37  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 38  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 39  1000  0. 10. um  # RBS Yield
+# LAYER3
+/analysis/h1/set 40  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 41  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 42  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 43  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 44  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 45  1000  0. 10. um  # RBS Yield
+# LAYER4
+/analysis/h1/set 46  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 47  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 48  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 49  1000  0. 3.0 MeV  # RBS Yield
+/analysis/h1/set 50  1000  0. 10. um  # RBS Yield
+/analysis/h1/set 51  1000  0. 10. um  # RBS Yield
+
+
+
+#beam on
+/run/beamOn 1

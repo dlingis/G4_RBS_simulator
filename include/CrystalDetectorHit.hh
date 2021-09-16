@@ -65,20 +65,24 @@ private:
     G4double fKinECR;
     G4ThreeVector fWorldPos;
     G4ThreeVector fWorldMomentum;
-	//new addition
+    G4ThreeVector fWorldMomentumDirection;
     
 public:
     inline void SetLayerID(G4int z) { fLayerID = z; }
     inline G4int GetLayerID() const { return fLayerID; }
     inline void SetStep(G4double z) { fStep = z; }
     inline G4double GetStep() const { return fStep; }
-    inline void SetKinECR(G4double z) { fKinECR = z; } //*************
-    inline G4double GetKinECR() const { return fKinECR; } //**********
+    inline void SetKinECR(G4double z) { fKinECR = z; } 
+    inline G4double GetKinECR() const { return fKinECR; }
     inline void SetWorldPos(G4ThreeVector xyz) { fWorldPos = xyz; }
     inline G4ThreeVector GetWorldPos() const { return fWorldPos; }
     
     inline void SetWorldMomentum(G4ThreeVector xyz) { fWorldMomentum = xyz; }
     inline G4ThreeVector GetWorldMomentum() const { return fWorldMomentum; }
+    
+    inline void SetWorldMomentumDirection(G4ThreeVector xyz) { fWorldMomentumDirection = xyz; }
+    inline G4ThreeVector GetWorldMomentumDirection() const { return fWorldMomentumDirection; }    
+    
 
 };
 

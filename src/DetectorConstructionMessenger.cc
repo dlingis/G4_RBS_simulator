@@ -133,14 +133,6 @@ DetectorConstructionMessenger(
     fXtalAngleCmd->SetDefaultValue(G4ThreeVector(0.,0.,0.));
     fXtalAngleCmd->SetDefaultUnit("rad");
     
-
-	// nurodymas, ar antroji gardele viduje pirmosios, ar atskirai
-/*
-    fXtalInsCmd = new G4UIcmdWithABool("/xtal/SetCrystalInside", this);
-    fXtalInsCmd->SetGuidance("Set crystal inside other crystal");
-    fXtalInsCmd->SetParameterName("fCrystalInside", true);
-    fXtalInsCmd->SetDefaultValue(false);    
-*/
 	// max step size
     fMaxStepCmd = new G4UIcmdWithADoubleAndUnit("/xtal/setMaxStep",this);
     fMaxStepCmd->SetGuidance("Set max step size for crystal and amorphous.");
@@ -148,8 +140,6 @@ DetectorConstructionMessenger(
                                     true);
     fMaxStepCmd->SetDefaultValue(10.);
     fMaxStepCmd->SetDefaultUnit("nm");
-
-
 
 	// en loss steps for rbs calc
     fEnLossStepCmd = new G4UIcmdWithAnInteger("/xtal/SetEnLossStep",this);
@@ -167,7 +157,6 @@ DetectorConstructionMessenger(
     fRBSAngleCmd->SetDefaultUnit("degree");
 
 	// use of sigmacalc xsec modificators
-
     fSigmaCalcCmd = new G4UIcmdWithABool("/xtal/SetSigmaCalc", this);
     fSigmaCalcCmd->SetGuidance("Use sigma calc xsec modificators");
     fSigmaCalcCmd->SetParameterName("fSigmaCalc", true);
@@ -179,38 +168,19 @@ DetectorConstructionMessenger(
     fRBSCmd->SetGuidance("Calculate RBS spectrum");
     fRBSCmd->SetParameterName("fRBSEval", true);
     fRBSCmd->SetDefaultValue(false);
-
-    // **************************************
-    fMyDetDirectory = new G4UIdirectory("/mydet/");
-    fMyDetDirectory->SetGuidance("Detector setup control commands.");
     
-    
-    fDetMaterialCmd = new G4UIcmdWithAString("/mydet/setDetMaterial",
-                                             this);
-    fDetMaterialCmd->SetGuidance("Set detector material.");
-    fDetMaterialCmd->SetParameterName("xDetMat",true);
-    fDetMaterialCmd->SetDefaultValue("");
-    
-    fDetSizesCmd = new G4UIcmdWith3VectorAndUnit("/mydet/setSize",this);
-    fDetSizesCmd->SetGuidance("Set detector size.");
-    fDetSizesCmd->SetParameterName("detSizeX",
-                                   "detSizeY",
-                                   "detSizeZ",
-                                   true);
-    fDetSizesCmd->SetDefaultValue(G4ThreeVector(50.,50.,1.));
-    fDetSizesCmd->SetDefaultUnit("mm");
-    
-    G4double defaultDistances[5] = {-20.,-19.,+19,+20.,+40.};
-    for(int i = 0;i<5;i++){
-        G4String command = "/mydet/setDistance" + std::to_string(i+1);
-        fDetDistanceCmd[i] = new G4UIcmdWithADoubleAndUnit(command,this);
-        fDetDistanceCmd[i]->SetGuidance("Set detector size.");
-        fDetDistanceCmd[i]->SetParameterName("detSize",
-                                            true);
-        fDetDistanceCmd[i]->SetDefaultValue(defaultDistances[i]);
-        fDetDistanceCmd[i]->SetDefaultUnit("mm");
-    }
-    
+	// include multiple scattering evaluation
+    fMSCmd = new G4UIcmdWithABool("/xtal/SetMSEvaluation", this);
+    fMSCmd->SetGuidance("Calculate MS induced energy spread");
+    fMSCmd->SetParameterName("fMSEval", true);
+    fMSCmd->SetDefaultValue(false);    
+	// set minimum RBS energy ROI
+    fRBSROICmd = new G4UIcmdWithADoubleAndUnit("/xtal/setRBSROI",this);
+    fRBSROICmd->SetGuidance("Set minimum ROI.");
+    fRBSROICmd->SetParameterName("minRoi",
+                                    true);
+    fRBSROICmd->SetDefaultValue(100.);
+    fRBSROICmd->SetDefaultUnit("keV");      
     
     // custom material definition
     fCustomMatCmd = new G4UIcmdWithABool("/xtal/EnableCustomMaterial", this);
@@ -240,6 +210,13 @@ DetectorConstructionMessenger(
                                     true);
     fCustomMatElement2PartCmd->SetDefaultValue(0.);
     
+    //element3 part
+    fCustomMatElement3PartCmd = new G4UIcmdWithADouble("/xtal/SetCustomMaterialElement3Part",this);
+    fCustomMatElement3PartCmd->SetGuidance("Set part of element3 in custom material ");
+    fCustomMatElement3PartCmd->SetParameterName("Part_of_el3",
+                                    true);
+    fCustomMatElement3PartCmd->SetDefaultValue(0.);
+    
     // element1 name
     fCustomMatElement1Cmd = new G4UIcmdWithAString("/xtal/SetCustomMaterialElement1",
                                               this);
@@ -253,6 +230,12 @@ DetectorConstructionMessenger(
     fCustomMatElement2Cmd->SetGuidance("Set element2 of custom material.");
     fCustomMatElement2Cmd->SetParameterName("cMat_el2",true);
     fCustomMatElement2Cmd->SetDefaultValue("G4_Si");
+    // element3 name
+    fCustomMatElement3Cmd = new G4UIcmdWithAString("/xtal/SetCustomMaterialElement3",
+                                              this);
+    fCustomMatElement3Cmd->SetGuidance("Set element3 of custom material.");
+    fCustomMatElement3Cmd->SetParameterName("cMat_el3",true);
+    fCustomMatElement3Cmd->SetDefaultValue("G4_Si");
     
     
     
@@ -293,6 +276,25 @@ DetectorConstructionMessenger(
                                             true);
     fMixMatNameCmd->SetDefaultValue("G4_Si");
     
+    
+    	// set detector fwhm calculation
+    fFwhmCalcCmd = new G4UIcmdWithABool("/xtal/SetFWHMCalc", this);
+    fFwhmCalcCmd->SetGuidance("Set for calculation of fwhm");
+    fFwhmCalcCmd->SetParameterName("fFwhmCalc", true);
+    fFwhmCalcCmd->SetDefaultValue(false);    
+    
+    	// set to use constant scattering angle (set by RBS angle command)	
+    fConstScatCmd = new G4UIcmdWithABool("/xtal/UseConstScatAngle", this);
+    fConstScatCmd->SetGuidance("Use constant scattering angle");
+    fConstScatCmd->SetParameterName("fConstScatAng", true);
+    fConstScatCmd->SetDefaultValue(false);        
+    
+    fUseMSCorrCmd = new G4UIcmdWithABool("/xtal/UseMSCorrections", this);
+    fUseMSCorrCmd->SetGuidance("Use stp pwr corrections for MS");
+    fUseMSCorrCmd->SetParameterName("fUseMsCor", true);
+    fUseMSCorrCmd->SetDefaultValue(false);        
+    
+    
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -305,24 +307,18 @@ DetectorConstructionMessenger::
     delete fMatMixRatioCmd;
     delete fDetResCmd;
     delete fGaussCountCmd;
-   
-	//
+
     delete fXtalAngleCmd;
-    //delete fXtalInsCmd;
-	//
 
     delete fMaxStepCmd;
     delete fRBSAngleCmd;
     delete fSigmaCalcCmd;
 
     delete fRBSCmd;
+    delete fMSCmd;
+    delete fRBSROICmd;
     delete fEnLossStepCmd;
   
-    delete fDetMaterialCmd;
-    delete fDetSizesCmd;
-    for(int i = 0;i<5;i++){
-        delete fDetDistanceCmd[i];
-    }
     // size matrix
     for(int i = 0;i<5;i++)
     	{
@@ -344,8 +340,10 @@ DetectorConstructionMessenger::
     delete fCustomMatDensityCmd;
     delete fCustomMatElement1PartCmd;
     delete fCustomMatElement2PartCmd;
+    delete fCustomMatElement3PartCmd;
     delete fCustomMatElement1Cmd;
     delete fCustomMatElement2Cmd;
+    delete fCustomMatElement3Cmd;
     
     delete fDeadMaterialCmd;
     delete fDeadThickCmd;
@@ -354,6 +352,10 @@ DetectorConstructionMessenger::
     
     delete fNoMatMixCmd;
     delete fMixMatNameCmd;
+    delete fFwhmCalcCmd;
+    delete fConstScatCmd;
+    delete fUseMSCorrCmd;
+    
     
     
 }
@@ -384,10 +386,6 @@ void DetectorConstructionMessenger::SetNewValue(
             fTarget->SetPosition(i,fPosCmd[i]->GetNew3VectorValue(newValue));
         }
     }
-/*
-    if(command==fXtalInsCmd){
-	fTarget->SetInside(true);
-    }*/
 
     if(command==fMatMixCmd){
     	fTarget->SetMixing(true);
@@ -409,17 +407,6 @@ void DetectorConstructionMessenger::SetNewValue(
     if(command == fEnLossStepCmd) {
 	fTarget->SetEnLossStep(fEnLossStepCmd->GetNewIntValue(newValue));
     }
-    if(command==fDetMaterialCmd ){
-        fTarget->SetDetectorMaterial(newValue);
-    }
-    if(command==fDetSizesCmd ){
-        fTarget->SetDetectorSizes(fDetSizesCmd->GetNew3VectorValue(newValue));
-    }
-    for(int i = 0;i<5;i++){
-        if(command==fDetDistanceCmd[i]){
-            fTarget->SetDetectorDistance(i,fDetDistanceCmd[i]->GetNewDoubleValue(newValue));
-        }
-    }
 
     if(command == fSigmaCalcCmd) {
 	fTarget->SetSigmaCal(true);
@@ -429,6 +416,13 @@ void DetectorConstructionMessenger::SetNewValue(
 	fTarget->SetRBSCalc(true);
 	}
 
+    if(command == fMSCmd) {
+    	fTarget->SetMSCalc(true);
+    	}
+    	
+    if(command == fRBSROICmd) {
+    	fTarget->SetRBSROImin(fRBSROICmd->GetNewDoubleValue(newValue));
+    	}
 
     if(command==fMaxStepCmd) {
 	fTarget->SetMaxStep(fMaxStepCmd->GetNewDoubleValue(newValue));
@@ -452,6 +446,9 @@ void DetectorConstructionMessenger::SetNewValue(
     if(command==fCustomMatElement2PartCmd){
     	fTarget->SetCustomElement2Part(fCustomMatElement2PartCmd->GetNewDoubleValue(newValue));
     	}
+    if(command==fCustomMatElement3PartCmd){
+    	fTarget->SetCustomElement3Part(fCustomMatElement3PartCmd->GetNewDoubleValue(newValue));
+    	}
     	
     if(command==fCustomMatElement1Cmd){
     	fTarget->SetCustomElement1(newValue);
@@ -459,6 +456,9 @@ void DetectorConstructionMessenger::SetNewValue(
     	
     if(command==fCustomMatElement2Cmd){
     	fTarget->SetCustomElement2(newValue);
+    	}
+    if(command==fCustomMatElement3Cmd){
+    	fTarget->SetCustomElement3(newValue);
     	}
     	
     if(command==fDeadThickCmd){
@@ -480,6 +480,17 @@ void DetectorConstructionMessenger::SetNewValue(
     	fTarget->SetMixingMaterial(newValue);
     	}
 	
+    if(command==fFwhmCalcCmd){
+    	fTarget->SetCalcFWHM(newValue);
+    	}
+    	
+    if(command==fConstScatCmd){
+    	fTarget->UseConstAngle(newValue);
+    	}
+    	
+    if(command==fUseMSCorrCmd){
+    	fTarget->SetUseMSCorrections(newValue);
+    	}
 
 	
 
@@ -505,12 +516,6 @@ G4String DetectorConstructionMessenger::GetCurrentValue(
     if( command== fEnLossStepCmd){
 	cv = fTarget->GetEnLossStep();
     }
-    if( command==fDetMaterialCmd ){
-        cv = fTarget->GetDetectorMaterial();
-    }
-    if( command==fDetSizesCmd ){
-        cv = fDetSizesCmd->ConvertToString(fTarget->GetDetectorSizes(),"mm");
-    }
 
     if( command == fMaxStepCmd ){
 	cv = fTarget->GetMaxStep();
@@ -518,12 +523,6 @@ G4String DetectorConstructionMessenger::GetCurrentValue(
 
     if( command == fRBSAngleCmd ){
 	cv = fTarget->GetRBSAngle();
-    }
-
-    for(int i = 0;i<5;i++){
-        if( command==fDetDistanceCmd[i] ){
-            cv = fDetDistanceCmd[i]->ConvertToString(fTarget->GetDetectorDistance(i),"mm");
-        }
     }
     // material set
     for(int i = 0;i<5;i++){

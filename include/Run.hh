@@ -85,12 +85,9 @@ class Run : public G4Run
     void AddNielStep() {nielstep++;};
 
     void AddProjectedRange(G4double z);
+    
+    void PrimaryEnergy(G4double en) 	{primary_energy += en;};
 
-
-
-    // addition
-    //virtual void RecordEvent(const G4Event*);
-    //void DumpData(G4String&) const;
     virtual void Merge(const G4Run*);
     void EndOfRun();     
 
@@ -111,24 +108,48 @@ class Run : public G4Run
    void abssumTL3(G4double energy){abssum_tl_3 += energy; abssum_tl_32 += energy*energy;};
    void abssumT(G4double energy) {abssum_t += energy; abssum_t2 += energy*energy;};
    void absnbrec(G4int rec)	 {absrec += rec;}
-   //outside absorber
+   //layer1 absorber
+   void abs1LEN (G4double length){abs1len += length; abs1len2 = length*length;};
+   void abs1STP (G4int step) 	 {abs1step += double(step); abs1step2 += double(step)*double(step);};
+   void abs1ION (G4double edep)  {abs1fEdep += edep; abs1fEdep2 += edep*edep;};
+   void abs1NON (G4double niel)  {abs1niel += niel; abs1niel2 += niel*niel;};
+   void abs1sumTL(G4double energy){abs1sum_tl += energy; abs1sum_tl2 += energy*energy;};
+   void abs1sumT(G4double energy){abs1sum_t += energy; abs1sum_t2 += energy*energy;};
+   void abs1nbrec(G4int rec)	 {abs1rec += rec;}
+   //layer2 absorber
    void abs2LEN (G4double length){abs2len += length; abs2len2 = length*length;};
    void abs2STP (G4int step) 	 {abs2step += double(step); abs2step2 += double(step)*double(step);};
    void abs2ION (G4double edep)  {abs2fEdep += edep; abs2fEdep2 += edep*edep;};
    void abs2NON (G4double niel)  {abs2niel += niel; abs2niel2 += niel*niel;};
    void abs2sumTL(G4double energy){abs2sum_tl += energy; abs2sum_tl2 += energy*energy;};
    void abs2sumT(G4double energy){abs2sum_t += energy; abs2sum_t2 += energy*energy;};
-   void abs2nbrec(G4int rec)	 {abs2rec += rec;}
-   // steps in between
-   void abs3LEN (G4double length) {abs3len += length; abs3len2 = length*length;};
-   void abs3STP (G4int step) 	  {abs3step += double(step); abs3step2 += double(step)*double(step);};
-   void abs3ION (G4double edep)   {abs3fEdep += edep; abs3fEdep2 += edep*edep;};
-   void abs3NON (G4double niel)   {abs3niel += niel; abs3niel2 += niel*niel;};
+   void abs2nbrec(G4int rec)	 {abs2rec += rec;}   
+   //layer3 absorber
+   void abs3LEN (G4double length){abs3len += length; abs3len2 = length*length;};
+   void abs3STP (G4int step) 	 {abs3step += double(step); abs3step2 += double(step)*double(step);};
+   void abs3ION (G4double edep)  {abs3fEdep += edep; abs3fEdep2 += edep*edep;};
+   void abs3NON (G4double niel)  {abs3niel += niel; abs3niel2 += niel*niel;};
+   void abs3sumTL(G4double energy){abs3sum_tl += energy; abs3sum_tl2 += energy*energy;};
+   void abs3sumT(G4double energy){abs3sum_t += energy; abs3sum_t2 += energy*energy;};
+   void abs3nbrec(G4int rec)	 {abs3rec += rec;}      
+   //layer4 absorber
+   void abs4LEN (G4double length){abs4len += length; abs4len2 = length*length;};
+   void abs4STP (G4int step) 	 {abs4step += double(step); abs4step2 += double(step)*double(step);};
+   void abs4ION (G4double edep)  {abs4fEdep += edep; abs4fEdep2 += edep*edep;};
+   void abs4NON (G4double niel)  {abs4niel += niel; abs4niel2 += niel*niel;};
+   void abs4sumTL(G4double energy){abs4sum_tl += energy; abs4sum_tl2 += energy*energy;};
+   void abs4sumT(G4double energy){abs4sum_t += energy; abs4sum_t2 += energy*energy;};
+   void abs4nbrec(G4int rec)	 {abs4rec += rec;}         
+   
    // check for entries
    void add_entry_sd(G4int en) 		{entry_sd += en;};
    void add_total_step(G4double en)		{total_step += en;};
    void MaxRBSDepth(G4double dist) 	{RBSDepth += dist; RBSDepth2 += dist*dist;};
    void AddCount()			{counts++;};		
+   
+   void Inc_angle(G4double a) 	{angle_of_incidence += a;};
+   
+   void add_entry_reach(G4double en)		{entry_reach += en;};
 
 
   
@@ -144,19 +165,11 @@ class Run : public G4Run
      G4double  fEmax;
     };
 
-
-    
-
-     
   private:
-    DetectorConstruction* fDetector;
-    G4ParticleDefinition* fParticle;
-    G4double              fEkin;
-
-    //
-    //G4ChannelingPhysics* chphys;
-   
-
+    DetectorConstruction* 	fDetector;
+    G4ParticleDefinition* 	fParticle;
+    G4double              	fEkin;
+    G4double			primary_energy;
     
     G4double fEnergyDeposit, fEnergyDeposit2;
     G4double fEnergyFlow,    fEnergyFlow2;            
@@ -176,7 +189,15 @@ class Run : public G4Run
     G4double abssum_tl_2,abssum_tl_22;
     G4double abssum_tl_3,abssum_tl_32;
     G4double abssum_t,abssum_t2;
-    G4int    absrec;
+    G4double    absrec;
+	// other material
+    G4double abs1len,abs1len2;
+    G4double abs1fEdep,abs1fEdep2;
+    G4double abs1niel,abs1niel2;
+    G4double abs1step,abs1step2;
+    G4double abs1sum_tl,abs1sum_tl2;
+    G4double abs1sum_t,abs1sum_t2;
+    G4double    abs1rec;    
 	// other material
     G4double abs2len,abs2len2;
     G4double abs2fEdep,abs2fEdep2;
@@ -184,19 +205,30 @@ class Run : public G4Run
     G4double abs2step,abs2step2;
     G4double abs2sum_tl,abs2sum_tl2;
     G4double abs2sum_t,abs2sum_t2;
-    G4int    abs2rec;
-	// in between
+    G4double    abs2rec;
+	// other material
     G4double abs3len,abs3len2;
     G4double abs3fEdep,abs3fEdep2;
     G4double abs3niel,abs3niel2;
     G4double abs3step,abs3step2;
-	// end
+    G4double abs3sum_tl,abs3sum_tl2;
+    G4double abs3sum_t,abs3sum_t2;
+    G4double    abs3rec;
+	// other material
+    G4double abs4len,abs4len2;
+    G4double abs4fEdep,abs4fEdep2;
+    G4double abs4niel,abs4niel2;
+    G4double abs4step,abs4step2;
+    G4double abs4sum_tl,abs4sum_tl2;
+    G4double abs4sum_t,abs4sum_t2;
+    G4double    abs4rec;    
+
+
+
     G4double vInitialTime;
     G4double totniel, totniel2;
     G4double RBSDepth, RBSDepth2;
     G4int counts;
-
-
 
   G4double EnergyDeposit,  EnergyDeposit2;
   G4double NonIonEnergyDeposit,  NonIonEnergyDeposit2;
@@ -217,6 +249,7 @@ class Run : public G4Run
 	
 
 	G4int entry_sd;
+	G4double entry_reach;
 	G4double total_step;
 	G4double rbs_angle;
 
@@ -229,8 +262,9 @@ class Run : public G4Run
 	G4double totstep;
 
     G4double projectedR, projectedR2;
+    
+    G4double angle_of_incidence;
 
-  //G4int TotalCount;
 
  void Print(const std::vector<G4String>& title,
                const std::map< G4int, std::vector<G4double> >&out,

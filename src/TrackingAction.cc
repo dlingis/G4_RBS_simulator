@@ -58,37 +58,21 @@ TrackingAction::TrackingAction(EventAction* event, DetectorConstruction* detecto
 
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {  
-  
+	G4VPhysicalVolume* volume = track->GetTouchableHandle()->GetVolume();
 	
+	if(volume == fDetector->GetIntAbsorber(1) || volume == fDetector->GetIntAbsorber(2) || volume == fDetector->GetIntAbsorber(3) || volume == fDetector->GetIntAbsorber(4) || volume == fDetector->GetIntAbsorber(5))
+	{
 
-	// counts secondary particles in both materials
-if (track->GetTouchableHandle()->GetVolume() == fDetector->GetAbsorber() || track->GetTouchableHandle()->GetVolume() == fDetector->GetAbsorber2() ) {
-  //count secondary particles
-  if (track->GetTrackID() == 1) return;  
-  G4String name   = track->GetDefinition()->GetParticleName();
-  G4double energy = track->GetKineticEnergy();
-  Run* run = static_cast<Run*>(
-      G4RunManager::GetRunManager()->GetNonConstCurrentRun());    
-  run->ParticleCount(name,energy);
+		//count secondary particles
+  		if (track->GetTrackID() == 1) return;  
+  		G4String name   = track->GetDefinition()->GetParticleName();
+  		G4double energy = track->GetKineticEnergy();
+  		Run* run = static_cast<Run*>(
+      		G4RunManager::GetRunManager()->GetNonConstCurrentRun());    
+  		run->ParticleCount(name,energy);
 
-  G4double charge = track->GetDynamicParticle()->GetDefinition()->GetPDGCharge();
-	if (charge > 0) {
-		run->addsec();
-	G4ThreeVector pos = track->GetVertexPosition(); // nustato pradine pozicija treko
-/*	G4cout << " pozicija vertex " << G4BestUnit(pos,"Length") << " ir energija: " << G4BestUnit(energy,"Energy") << G4endl;
-			const G4StepPoint* startPoint = track->GetStep()->GetPreStepPoint();
-			const G4StepPoint* endPoint = track->GetStep()->GetPostStepPoint();
-			G4ThreeVector end = endPoint->GetPosition();
-			G4ThreeVector start = startPoint->GetPosition();
-	G4cout << " pozicija step " << start << G4endl;
-	G4cout << " pozicija position " << track->GetPosition() << G4endl;} */
 
-   FILE * output=fopen("secondaries.txt","a");
-   fprintf(output, "%s\t %f\t %f\t %f\t %f\t %f\n", name.c_str(), charge, energy/keV, pos.x()/um, pos.y()/um, pos.z()/um);
-   fclose(output); 	
-	}
-
-  }
+  	}
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -99,62 +83,44 @@ void TrackingAction::PostUserTrackingAction(const G4Track* track)
  Run* run = static_cast<Run*>(
               G4RunManager::GetRunManager()->GetNonConstCurrentRun());
 
-	//remove("backscattered.txt");
-	// pradzioje trekinimas pasaulyjejei pirmines daleles neiseina is absorberio, treko nera. Jeigu cia uzregistruoja, reiskia vyksta atgaline sklaida. 
-if (track->GetTouchableHandle()->GetVolume() == fDetector->GetWorld()) {
-	if (track->GetParentID() == 0) {
-		G4ThreeVector momentas = track->GetMomentumDirection();
-		G4double momz = momentas.z();
-			if (momz <= 0) {
-			// printinti backscattered particles i faila
-				G4String name   = track->GetDefinition()->GetParticleName();
- 				G4double energy = track->GetKineticEnergy();
 
-
-				//remove("backscattered.txt");
-   				FILE * output=fopen("backscattered.txt","a");
-   				fprintf(output, "%s\t %f\t %f\n", name.c_str(), energy/keV, std::acos(momz)/degree);
-   				fclose(output); 
-				//G4cout << " Vyksta atgaline sklaida. Momentas " << momz << G4endl;
-				run->addrbs();
-					}
-		}
-}
-
-  if (track->GetTouchableHandle()->GetVolume() == fDetector->GetAbsorber() || track->GetTouchableHandle()->GetVolume() == fDetector->GetAbsorber2() ) 
+	G4VPhysicalVolume* volume = track->GetTouchableHandle()->GetVolume();
+	
+	if(volume == fDetector->GetIntAbsorber(0) || volume == fDetector->GetIntAbsorber(1) || volume == fDetector->GetIntAbsorber(2) || volume == fDetector->GetIntAbsorber(3) || volume == fDetector->GetIntAbsorber(4))
 	{
+
   		G4String parName = track->GetDefinition()->GetParticleName();
 
-	//pliusas, nes -z kryptimi pluostelis sklinda
-  G4double Trleng = track->GetTrackLength()+fPrimary->GetParticleGun()->GetParticlePosition().z()+0.5*fDetector->GetLength(0);
+		//pliusas, nes -z kryptimi pluostelis sklinda
+  		G4double Trleng = track->GetTrackLength()+fPrimary->GetParticleGun()->GetParticlePosition().z()+0.5*fDetector->GetLength(0);
 
-  if (track->GetParentID() == 0) {
-    fEventAction->AddTrueTrakLen(Trleng);
-    G4ThreeVector vertex = track->GetVertexPosition();
-    G4ThreeVector position = track->GetPosition()+0.5*fDetector->GetDimensions(0);// - vertex;    //pakeista is   track->GetPosition() - vertex;
-    fEventAction->AddProjTrakLen(position.z());
-	} 
+  		if (track->GetParentID() == 0) 
+  		{
+    			fEventAction->AddTrueTrakLen(Trleng);
+   			G4ThreeVector vertex = track->GetVertexPosition();
+   			G4ThreeVector position = track->GetPosition()+0.5*fDetector->GetDimensions(0);
+    			fEventAction->AddProjTrakLen(position.z());
+		} 
 
- if (track->GetTrackID() == 1) {
-   G4double z = track->GetPosition().z() + 0.5*fDetector->GetLength(0);
-   run->AddProjectedRange(z);
- 	G4AnalysisManager* analysis = G4AnalysisManager::Instance();
-   analysis->FillH1(16, z);
- }
+ 		if (track->GetTrackID() == 1) 
+ 		{
+   			G4double z = track->GetPosition().z() + 0.5*fDetector->GetLength(0);
+   			run->AddProjectedRange(z);
+ 			G4AnalysisManager* analysis = G4AnalysisManager::Instance();
+   			analysis->FillH1(16, z);
+ 		}
 
-
-  // buvo vx, keičiu į z ašį pagal mano geometriją
-  //scattering angle of  primary particle
-  if (track->GetParentID() == 0 ){
-
-    G4double theta = 0.0;
-    G4double    vz = (track->GetMomentumDirection()).z(); 
-    //G4cout<<"Angle_Lab: "<<std::acos(vx)<<" Position_x: "<<px<<G4endl;
-    if(vz <= -1.0)    { theta = -CLHEP::pi; }
-    else if(vz < 1.0) { theta = std::acos(vz); }
-    fEventAction->AddTheta(theta);   
-  }
-  }
+  		//scattering angle of  primary particle
+  		if (track->GetParentID() == 0 )
+  		{
+    			G4double theta = 0.0;
+    			G4double    vz = (track->GetMomentumDirection()).z(); 
+    			//G4cout<<"Angle_Lab: "<<std::acos(vx)<<" Position_x: "<<px<<G4endl;
+    			if(vz <= -1.0)    { theta = -CLHEP::pi; }
+    			else if(vz < 1.0) { theta = std::acos(vz); }
+    			fEventAction->AddTheta(theta);   
+  		}
+  	}
  // keep only outgoing particle
  G4StepStatus status = track->GetStep()->GetPostStepPoint()->GetStepStatus();
  if (status != fWorldBoundary) return; 

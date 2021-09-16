@@ -67,48 +67,38 @@ class DetectorConstructionMessenger: public G4UImessenger
     G4UIcmdWithAString*  		fWorldMaterial;
     
     G4UIcmdWithAString*  		fDetMaterialCmd;
-    G4UIcmdWith3VectorAndUnit*  	fDetSizesCmd;
-    G4UIcmdWithADoubleAndUnit*  	fDetDistanceCmd[5];
     
     G4UIcmdWithAString*  		fMaterialCmd[5];
     G4UIcmdWith3VectorAndUnit* 	fSizeCmd[5];
         G4UIcmdWith3VectorAndUnit* 	fPosCmd[4];
     
-    //G4UIcmdWithAString*  		fXtalMaterialCmd;
-    //G4UIcmdWith3VectorAndUnit* 		fXtalSizeCmd;
-	//
-    //G4UIcmdWithAString*  		fXtalMaterialCmd2;
     
     G4UIcmdWithABool*			fMatMixCmd;
     G4UIcmdWithADouble*		fMatMixRatioCmd;
     
-    G4UIcmdWithADoubleAndUnit*	fDetResCmd;
+    G4UIcmdWithADoubleAndUnit*		fDetResCmd;
     G4UIcmdWithAnInteger*		fGaussCountCmd;
     
-    
-    //G4UIcmdWith3VectorAndUnit* 		fXtalSizeCmd2;
-
     G4UIcmdWith3VectorAndUnit* 		fXtalAngleCmd;
     G4UIcmdWithABool*			fSigmaCalcCmd;
-    //G4UIcmdWithAnInteger* 		fXtalLogCmd;
-	//
-    //G4UIcmdWithABool* 	 		fXtalInsCmd;
-    //G4UIcmdWithAnInteger* 		fXtalLogCmd2;
-    //G4UIcmdWith3VectorAndUnit* 		fXtalPosCmd;
-	
     G4UIcmdWithADoubleAndUnit* 		fMaxStepCmd;
     G4UIcmdWithADoubleAndUnit*		fRBSAngleCmd;
     G4UIcmdWithAnInteger* 		fEnLossStepCmd;
 
 
     G4UIcmdWithABool* 			fRBSCmd;
+    G4UIcmdWithABool*			fMSCmd;
+    G4UIcmdWithADoubleAndUnit*		fRBSROICmd;
+    
     
     G4UIcmdWithABool*			fCustomMatCmd;
-    G4UIcmdWithADoubleAndUnit*	fCustomMatDensityCmd;
+    G4UIcmdWithADoubleAndUnit*		fCustomMatDensityCmd;
     G4UIcmdWithADouble*		fCustomMatElement1PartCmd;
     G4UIcmdWithADouble*		fCustomMatElement2PartCmd;
+    G4UIcmdWithADouble*		fCustomMatElement3PartCmd;
     G4UIcmdWithAString*		fCustomMatElement1Cmd;
     G4UIcmdWithAString*		fCustomMatElement2Cmd;
+    G4UIcmdWithAString*		fCustomMatElement3Cmd;
     
     G4UIcmdWithADoubleAndUnit* 	fDeadThickCmd; 
     G4UIcmdWithAString*		fDeadMaterialCmd;
@@ -118,6 +108,11 @@ class DetectorConstructionMessenger: public G4UImessenger
     	
     G4UIcmdWithAnInteger*		fNoMatMixCmd;
     G4UIcmdWithAString*		fMixMatNameCmd;
+    
+    
+    G4UIcmdWithABool*			fFwhmCalcCmd;
+    G4UIcmdWithABool*			fConstScatCmd;
+    G4UIcmdWithABool*			fUseMSCorrCmd;
     
     
 

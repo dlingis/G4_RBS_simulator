@@ -67,128 +67,126 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
 	G4VPhysicalVolume* posMAT = aStep->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
 
 
-  G4double charge = aStep->GetTrack()->GetDynamicParticle()->GetCharge(); //GetDefinition()->GetPDGCharge()
-  G4String parName = aStep->GetTrack()->GetDynamicParticle()->GetDefinition()->GetParticleName();
+ 	G4double charge = aStep->GetTrack()->GetDynamicParticle()->GetCharge(); //GetDefinition()->GetPDGCharge()
+  	G4String parName = aStep->GetTrack()->GetDynamicParticle()->GetDefinition()->GetParticleName();
 
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  G4double niel = aStep->GetNonIonizingEnergyDeposit();
-
-
-			G4double detsize = detector->GetLength(0)/2;
-			G4ThreeVector end = aStep->GetPostStepPoint()->GetPosition();
-
-			G4ThreeVector start = aStep->GetPreStepPoint()->GetPosition();
- 			G4ThreeVector point = start + G4UniformRand()*(end - start);
-			G4double    vz = (aStep->GetTrack()->GetMomentumDirection()).z(); 
-			G4double angle = std::acos(vz)/degree;
+  	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+  	G4double niel = aStep->GetNonIonizingEnergyDeposit();
 
 
+	G4double detsize = detector->GetLength(0)/2;
+	G4ThreeVector end = aStep->GetPostStepPoint()->GetPosition();
+	G4ThreeVector start = aStep->GetPreStepPoint()->GetPosition();
+	G4ThreeVector point = start + G4UniformRand()*(end - start);
 
-			G4double endPos = end.z()+detsize;
-			G4double startPos = start.z()+detsize;
+	G4double endPos = end.z()+detsize;
+	G4double startPos = start.z()+detsize;
 
-    G4double x  = startPos + G4UniformRand()*(endPos-startPos);
-    analysisManager->FillH1(39, x, niel);
-    
-    //G4cout << " x " << x << G4endl;
+    	G4double x  = startPos + G4UniformRand()*(endPos-startPos);
+    	analysisManager->FillH1(39, x, niel);
 
-// primary particles 
-  G4int IDp =  aStep->GetTrack()->GetParentID();
-  Run* run = static_cast<Run*>(
-             G4RunManager::GetRunManager()->GetNonConstCurrentRun()); 
-
-	// vertinimas tik vidiniame (arba ne) tūryje
-	if (preMAT == detector->GetAbsorber2() && posMAT == detector->GetAbsorber2() )
+	// primary particles 
+  	G4int IDp =  aStep->GetTrack()->GetParentID();
+  	Run* run = static_cast<Run*>(
+        G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+             
+	// main volume
+	if(preMAT == detector->GetIntAbsorber(0) && posMAT == detector->GetIntAbsorber(0) )
 	{
-		if (IDp==0 ){
+		if(IDp == 0)
+		{
 			run->absLEN(aStep->GetStepLength());
 			run->absION(aStep->GetTotalEnergyDeposit());
 			run->absNON(aStep->GetNonIonizingEnergyDeposit());
-			fEventAction->absSTP();		
+			fEventAction->absSTP();
 		}
 	}
-	// atskiras vertinimas išoriniam tūryje
-	if (preMAT == detector->GetAbsorber() && posMAT == detector->GetAbsorber() )
+	
+	// layer1
+	if(preMAT == detector->GetIntAbsorber(1) && posMAT == detector->GetIntAbsorber(1) )
 	{
-		if (IDp==0 ){
+		if(IDp == 0)
+		{
+			run->abs1LEN(aStep->GetStepLength());
+			run->abs1ION(aStep->GetTotalEnergyDeposit());
+			run->abs1NON(aStep->GetNonIonizingEnergyDeposit());
+			fEventAction->abs1STP();
+		}
+	}
+	
+	// layer2
+	if(preMAT == detector->GetIntAbsorber(2) && posMAT == detector->GetIntAbsorber(2) )
+	{
+		if(IDp == 0)
+		{
 			run->abs2LEN(aStep->GetStepLength());
 			run->abs2ION(aStep->GetTotalEnergyDeposit());
 			run->abs2NON(aStep->GetNonIonizingEnergyDeposit());
-			fEventAction->abs2STP();		
+			fEventAction->abs2STP();
 		}
-	}
-	// vertinimas, kai zingsnis vyksta tarp turiu
-	if ((preMAT == detector->GetAbsorber() && posMAT == detector->GetAbsorber2()) || 
-	(preMAT == detector->GetAbsorber2() && posMAT == detector->GetAbsorber())	)
+	}		
+	// layer3
+	if(preMAT == detector->GetIntAbsorber(3) && posMAT == detector->GetIntAbsorber(3) )
 	{
-		if (IDp==0 ){
+		if(IDp == 0)
+		{
 			run->abs3LEN(aStep->GetStepLength());
 			run->abs3ION(aStep->GetTotalEnergyDeposit());
 			run->abs3NON(aStep->GetNonIonizingEnergyDeposit());
-			fEventAction->abs3STP();		
+			fEventAction->abs3STP();
+		}
+	}		
+	// layer4
+	if(preMAT == detector->GetIntAbsorber(4) && posMAT == detector->GetIntAbsorber(4) )
+	{
+		if(IDp == 0)
+		{
+			run->abs4LEN(aStep->GetStepLength());
+			run->abs4ION(aStep->GetTotalEnergyDeposit());
+			run->abs4NON(aStep->GetNonIonizingEnergyDeposit());
+			fEventAction->abs4STP();
 		}
 	}
 
-// pridedu vertinima, kai pre ir post stepai ne viename turyje, o skirtinguose
-if ((preMAT == detector->GetAbsorber() && posMAT == detector->GetAbsorber()) || (preMAT == detector->GetAbsorber2() && posMAT == detector->GetAbsorber2()) 
-	|| (preMAT == detector->GetAbsorber() && posMAT == detector->GetAbsorber2()) || (preMAT == detector->GetAbsorber2() && posMAT == detector->GetAbsorber())) {
-  // primary particles
-   if (IDp==0 ){//*****************************************
- 
-		analysisManager->FillH1(15, point.z()+detsize, angle);	
+  	// primary particles
+   	if (IDp==0 )
+   	{//*****************************************
+   	
 		run->AddTotStep();
-
-
-   //G4cout << " Particle " << parName; // prie jonu rodo Li7
-   run->AddTrakLenPrim(aStep->GetStepLength());
-   fEventAction->CountStepsPrim();
-   run->AddEnergy(aStep->GetTotalEnergyDeposit());
-   // panasu, kad egzistuoja skirtumas, ar tiesiogiai perduodama run, ar per eventaction. Per eventaction didesne verte nei per run.
-   run->AddNonIonEnergy(aStep->GetNonIonizingEnergyDeposit());
-} //**********************************
-   if (IDp > 0 && charge > 0){
-   fEventAction->AddTrakLenSec(aStep->GetStepLength()); 
+	   	run->AddTrakLenPrim(aStep->GetStepLength());
+	   	fEventAction->CountStepsPrim();
+	   	run->AddEnergy(aStep->GetTotalEnergyDeposit());
+	   	run->AddNonIonEnergy(aStep->GetNonIonizingEnergyDeposit());
+	} //**********************************
+   	if (IDp > 0 && charge > 0)
+   	{
+   		run->AddTrakLenSec(aStep->GetStepLength()); 
+   		//fEventAction->AddTrakLenSec(aStep->GetStepLength()); 
 	}
 
-  const G4StepPoint* endPoint = aStep->GetPostStepPoint();
-  const G4VProcess* process   = endPoint->GetProcessDefinedStep();
-  run->CountProcesses(process);
+  	const G4StepPoint* endPoint = aStep->GetPostStepPoint();
+  	const G4VProcess* process   = endPoint->GetProcessDefinedStep();
+  	run->CountProcesses(process);
   
-   if (IDp == 0){// primary energy deposition
-  G4double edepStep = aStep->GetTotalEnergyDeposit();
-  G4double nielStep = aStep->GetNonIonizingEnergyDeposit();
+   	if (IDp == 0)
+   	{// primary energy deposition
+  		G4double edepStep = aStep->GetTotalEnergyDeposit();
+  		G4double nielStep = aStep->GetNonIonizingEnergyDeposit();
 
-
-
-	//G4cout << " Kin En " << aStep->GetTrack()->GetKineticEnergy()/MeV << G4endl;
-	//G4cout << " Tot En " << G4BestUnit(aStep->GetTrack()->GetTotalEnergy(), "Energy") << G4endl;
-	//G4cout << " Velocity "  << aStep->GetTrack()->GetVelocity()/(cm/s) << G4endl;
-	//G4cout << " Momentum " << aStep->GetTrack()->GetMomentum().mag() << G4endl;
-	//G4String process   = endPoint->GetProcessDefinedStep()->GetProcessName();
-	//G4cout << " procesas " << process << " atstumas " << (point.z()+detsize)/nm << " energy loss tot keV " << edepStep/keV << " niel step kev " << nielStep/keV << " kampas " << angle << G4endl;
-
-	if (nielStep > 0.)
-	{ G4ThreeVector prePoint  = aStep->GetPreStepPoint()->GetPosition();
- 	G4ThreeVector postPoint = aStep->GetPostStepPoint()->GetPosition();
- 	G4double r = point.z();
-
- 	analysisManager->FillH1(17, r+detsize, nielStep/keV);
-	analysisManager->FillH1(18, nielStep);
-
-	run->AddNielStep();
-	}
-  if (edepStep <= 0.) return; 
-  fEventAction->AddEdep(edepStep);
-  
- G4ThreeVector prePoint  = aStep->GetPreStepPoint()->GetPosition();
- G4ThreeVector postPoint = aStep->GetPostStepPoint()->GetPosition();
- G4double r = point.z();
- analysisManager->FillH1(2, r+detsize, edepStep);
- analysisManager->FillH1(19, edepStep);
+		if (nielStep > 0.)
+		{ 
+			G4ThreeVector prePoint  = aStep->GetPreStepPoint()->GetPosition();
+ 			G4ThreeVector postPoint = aStep->GetPostStepPoint()->GetPosition();
+ 			G4double r = point.z();
+			// NIEL
+ 			analysisManager->FillH1(17, r+detsize, nielStep/keV);
+			analysisManager->FillH1(18, nielStep);
+			// IONiZING energy loss
+ 			analysisManager->FillH1(2, r+detsize, edepStep);
+ 			analysisManager->FillH1(19, edepStep);
+		}
 	}
 }
-}
-//}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 

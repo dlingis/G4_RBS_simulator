@@ -45,14 +45,6 @@
 
 #include "G4hIonisation.hh"
 
-//#include "G4MultiFunctionalDetector.hh"
-//#include "G4SDManager.hh"
-//#include "G4VPrimitiveScorer.hh"
-
-//keisti neutronu srautui
-//#include "RunMessenger.hh"
-
-//#include <fstream>
 #include <ctime>
 
 
@@ -104,6 +96,14 @@ Run::Run(DetectorConstruction* det)
    abssum_t=abssum_t2=0.;
    absrec=0.;
 
+   abs1len=abs1len2=0.;
+   abs1fEdep=abs1fEdep2=0.;
+   abs1niel=abs1niel2=0.;
+   abs1step=abs1step2=0.;
+   abs1sum_tl=abs1sum_tl2=0.;
+   abs1sum_t=abs1sum_t2=0.;
+   abs1rec=0.;
+
 	// other material
 
    abs2len=abs2len2=0.;
@@ -114,14 +114,21 @@ Run::Run(DetectorConstruction* det)
    abs2sum_t=abs2sum_t2=0.;
    abs2rec=0.;
 
-   abs3niel=abs3niel2=0;
+   abs3len=abs3len2=0.;
+   abs3fEdep=abs3fEdep2=0.;
+   abs3niel=abs3niel2=0.;
+   abs3step=abs3step2=0.;
+   abs3sum_tl=abs3sum_tl2=0.;
+   abs3sum_t=abs3sum_t2=0.;
+   abs3rec=0.;
 
-
-
-  abs3fEdep=abs3fEdep2=0.;
-  abs3step =abs3step2=0.;
-  abs3len  = abs3len2=0.;
-
+   abs4len=abs4len2=0.;
+   abs4fEdep=abs4fEdep2=0.;
+   abs4niel=abs4niel2=0.;
+   abs4step=abs4step2=0.;
+   abs4sum_tl=abs4sum_tl2=0.;
+   abs4sum_t=abs4sum_t2=0.;
+   abs4rec=0.;
 
 
    totniel=totniel2=0.;
@@ -131,6 +138,7 @@ Run::Run(DetectorConstruction* det)
 
 	entry_sd 	= 0.;
 	total_step 	= 0.;
+	entry_reach	= 0.;
    RBSDepth=RBSDepth2=0.;
    counts=0;
         
@@ -365,6 +373,21 @@ void Run::Merge(const G4Run* run)
   abssum_t		+= localRun->abssum_t;
   abssum_t2		+= localRun->abssum_t2;
   absrec 		+= localRun->absrec;
+  
+  abs1len		+= localRun->abs1len;
+  abs1len2 		+= localRun->abs1len2;
+  abs1step		+= localRun->abs1step;
+  abs1step2		+= localRun->abs1step2;
+  abs1fEdep      	+= localRun->abs1fEdep;
+  abs1niel		+= localRun->abs1niel;
+  abs1fEdep2     	+= localRun->abs1fEdep2;
+  abs1niel2		+= localRun->abs1niel2;
+  abs1sum_tl		+= localRun->abs1sum_tl;
+  abs1sum_tl2		+= localRun->abs1sum_tl2;
+  abs1sum_t		+= localRun->abs1sum_t;
+  abs1sum_t2		+= localRun->abs1sum_t2;
+  abs1rec 		+= localRun->abs1rec;  
+  
   // other material
   abs2len		+= localRun->abs2len;
   abs2len2 		+= localRun->abs2len2;
@@ -388,6 +411,29 @@ void Run::Merge(const G4Run* run)
   abs3niel		+= localRun->abs3niel;
   abs3fEdep2     	+= localRun->abs3fEdep2;
   abs3niel2		+= localRun->abs3niel2;
+  abs3sum_tl		+= localRun->abs3sum_tl;
+  abs3sum_tl2		+= localRun->abs3sum_tl2;
+  abs3sum_t		+= localRun->abs3sum_t;
+  abs3sum_t2		+= localRun->abs3sum_t2;
+  abs3rec 		+= localRun->abs3rec;
+  
+  abs4len		+= localRun->abs4len;
+  abs4len2 		+= localRun->abs4len2;
+  abs4step		+= localRun->abs4step;
+  abs4step2		+= localRun->abs4step2;
+  abs4fEdep      	+= localRun->abs4fEdep;
+  abs4niel		+= localRun->abs4niel;
+  abs4fEdep2     	+= localRun->abs4fEdep2;
+  abs4niel2		+= localRun->abs4niel2;
+  abs4sum_tl		+= localRun->abs4sum_tl;
+  abs4sum_tl2		+= localRun->abs4sum_tl2;
+  abs4sum_t		+= localRun->abs4sum_t;
+  abs4sum_t2		+= localRun->abs4sum_t2;
+  abs4rec 		+= localRun->abs4rec;  
+  
+  primary_energy	+= localRun->primary_energy;
+  
+  angle_of_incidence 	+= localRun->angle_of_incidence;
 
 
   totniel       += localRun->totniel;
@@ -410,6 +456,7 @@ void Run::Merge(const G4Run* run)
 
 
   entry_sd 	+=localRun->entry_sd;
+  entry_reach	+=localRun->entry_reach;
   total_step	+=localRun->total_step;
   RBSDepth	+=localRun->RBSDepth;
   counts 	+=localRun->counts;
@@ -506,7 +553,16 @@ void Run::EndOfRun()
 
   G4Material* material2 = fDetector->GetMaterialM(1);
   G4double density2 = material2->GetDensity();
-   
+  G4Material* material3 = fDetector->GetMaterialM(2);
+  G4double density3 = material3->GetDensity();
+  G4Material* material4 = fDetector->GetMaterialM(3);  
+  G4double density4 = material4->GetDensity();
+  G4Material* material5 = fDetector->GetMaterialM(4);  
+  G4double density5 = material5->GetDensity();
+  
+  G4cout << " ********************************************************** " << G4endl;
+  G4cout << " ******************** FINISH OF RUN *********************** " << G4endl;
+     
   G4String Particle = fParticle->GetParticleName();    
   G4cout << "\n The run is " << numberOfEvent << " "<< Particle << " of "
          << G4BestUnit(fEkin,"Energy") << " through "  << G4BestUnit(fDetector->GetLength(0),"Length") << " length parallelpiped of " << material->GetName() << " (density: " << G4BestUnit(density,"Volumic Mass") << ")" << "\n and second material " << G4BestUnit(fDetector->GetLength(1),"Length") << " of " << material2->GetName() <<  " (density: " << G4BestUnit(density2,"Volumic Mass") << ")" << G4endl;
@@ -654,7 +710,7 @@ void Run::EndOfRun()
   // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
   //************************************************
   // --------------------------------------------
-  // absorber 
+  // MAIN LAYER
   //  edep
   absfEdep /= TotNbofEvents; absfEdep2 /= TotNbofEvents;
   G4double absrmsEdep = absfEdep2 - absfEdep*absfEdep;
@@ -691,13 +747,47 @@ void Run::EndOfRun()
 	// mean niel dE/dx in absorber
   G4double dEdx_niel_abs = absniel/abslen;
 
-
-
   // **************************************
-  // end of absorber
+  // FIRST LAYER
+  //  edep
+  abs1fEdep /= TotNbofEvents; abs1fEdep2 /= TotNbofEvents;
+  G4double abs1rmsEdep = abs1fEdep2 - abs1fEdep*abs1fEdep;
+  if(abs1rmsEdep >0.)abs1rmsEdep=std::sqrt(abs1rmsEdep/TotNbofEvents);
+  else abs1rmsEdep =0;
+  // track length 
+  abs1len /= TotNbofEvents; abs1len2 /= TotNbofEvents;
+  G4double abs1rmsTLPrim = abs1len2 - abs1len*abs1len;
+  if (abs1rmsTLPrim>0.) abs1rmsTLPrim = std::sqrt(abs1rmsTLPrim/TotNbofEvents);
+  else abs1rmsTLPrim = 0.;
+  //nuclear energy loss
+  abs1niel /= TotNbofEvents; abs1niel2 /= TotNbofEvents;
+  G4double abs1rmsEnondep = abs1niel2 - abs1niel*abs1niel;
+  if(abs1rmsEnondep>0.) abs1rmsEnondep= std::sqrt(abs1rmsEnondep/TotNbofEvents);
+  else abs1rmsEnondep=0;
+  //mean sum of T( kinetic energy of secondary)x L(T) partition energy 
+  abs1sum_tl/=TotNbofEvents;     abs1sum_tl2/=TotNbofEvents;
+  G4double abs1rmssum_tl =abs1sum_tl2- abs1sum_tl*abs1sum_tl;
+  if(abs1rmssum_tl>0.) abs1rmssum_tl=std::sqrt(abs1rmssum_tl/TotNbofEvents);
+  else abs1rmssum_tl =0;
+  //mean kinetic energy of secondary particles (IDp==1) 
+  G4double abs1rmssum_t = 0.0;
+  if(abs1rec > 0) {
+    abs1sum_t/=abs1rec;     abs1sum_t2/=abs1rec;
+    abs1rmssum_t =abs1sum_t2- abs1sum_t*abs1sum_t;
+    if(abs1rmssum_t>0.) abs1rmssum_t=std::sqrt(abs1rmssum_t/abs1rec);  }
+  //mean number of steps:
+  abs1step/=TotNbofEvents;  abs1step2/=TotNbofEvents;
+  G4double abs1rmsSteps= abs1step2 -abs1step*abs1step;
+  if(abs1rmsSteps>0) abs1rmsSteps= std::sqrt(abs1rmsSteps/TotNbofEvents);
+  else abs1rmsSteps=0;
+	// mean dE/dx in absorber 1
+  G4double dEdx_abs1 = abs1fEdep/abs1len;
+	// mean niel dE/dx in absorber 1 
+  G4double dEdx_niel_abs1 = abs1niel/abs1len;
 
 
-  // absorber2 
+//*********************************
+  // SECOND LAYER
   //  edep
   abs2fEdep /= TotNbofEvents; abs2fEdep2 /= TotNbofEvents;
   G4double abs2rmsEdep = abs2fEdep2 - abs2fEdep*abs2fEdep;
@@ -736,11 +826,7 @@ void Run::EndOfRun()
 
 
 //*********************************
-  //mean number of steps:
-  abs3step/=TotNbofEvents;  abs3step2/=TotNbofEvents;
-  G4double abs3rmsSteps= abs3step2 -abs3step*abs3step;
-  if(abs3rmsSteps>0) abs3rmsSteps= std::sqrt(abs3rmsSteps/TotNbofEvents);
-  else abs3rmsSteps=0;
+  // THIRD LAYER
   //  edep
   abs3fEdep /= TotNbofEvents; abs3fEdep2 /= TotNbofEvents;
   G4double abs3rmsEdep = abs3fEdep2 - abs3fEdep*abs3fEdep;
@@ -756,7 +842,65 @@ void Run::EndOfRun()
   G4double abs3rmsEnondep = abs3niel2 - abs3niel*abs3niel;
   if(abs3rmsEnondep>0.) abs3rmsEnondep= std::sqrt(abs3rmsEnondep/TotNbofEvents);
   else abs3rmsEnondep=0;
+  //mean sum of T( kinetic energy of secondary)x L(T) partition energy 
+  abs3sum_tl/=TotNbofEvents;     abs3sum_tl2/=TotNbofEvents;
+  G4double abs3rmssum_tl =abs3sum_tl2- abs3sum_tl*abs3sum_tl;
+  if(abs3rmssum_tl>0.) abs3rmssum_tl=std::sqrt(abs3rmssum_tl/TotNbofEvents);
+  else abs3rmssum_tl =0;
+  //mean kinetic energy of secondary particles (IDp==1) 
+  G4double abs3rmssum_t = 0.0;
+  if(abs3rec > 0) {
+    abs3sum_t/=abs3rec;     abs3sum_t2/=abs3rec;
+    abs3rmssum_t =abs3sum_t2- abs3sum_t*abs3sum_t;
+    if(abs3rmssum_t>0.) abs3rmssum_t=std::sqrt(abs3rmssum_t/abs3rec);  }
+  //mean number of steps:
+  abs3step/=TotNbofEvents;  abs3step2/=TotNbofEvents;
+  G4double abs3rmsSteps= abs3step2 -abs3step*abs3step;
+  if(abs3rmsSteps>0) abs3rmsSteps= std::sqrt(abs3rmsSteps/TotNbofEvents);
+  else abs3rmsSteps=0;
+	// mean dE/dx in absorber 3
+  G4double dEdx_abs3 = abs3fEdep/abs3len;
+	// mean niel dE/dx in absorber 3 
+  G4double dEdx_niel_abs3 = abs3niel/abs3len;
 
+
+//*********************************
+  // FOURTH LAYER
+  //  edep
+  abs4fEdep /= TotNbofEvents; abs4fEdep2 /= TotNbofEvents;
+  G4double abs4rmsEdep = abs4fEdep2 - abs4fEdep*abs4fEdep;
+  if(abs4rmsEdep >0.)abs4rmsEdep=std::sqrt(abs4rmsEdep/TotNbofEvents);
+  else abs4rmsEdep =0;
+  // track length 
+  abs4len /= TotNbofEvents; abs4len2 /= TotNbofEvents;
+  G4double abs4rmsTLPrim = abs4len2 - abs4len*abs4len;
+  if (abs4rmsTLPrim>0.) abs4rmsTLPrim = std::sqrt(abs4rmsTLPrim/TotNbofEvents);
+  else abs4rmsTLPrim = 0.;
+  //nuclear energy loss
+  abs4niel /= TotNbofEvents; abs4niel2 /= TotNbofEvents;
+  G4double abs4rmsEnondep = abs4niel2 - abs4niel*abs4niel;
+  if(abs4rmsEnondep>0.) abs4rmsEnondep= std::sqrt(abs4rmsEnondep/TotNbofEvents);
+  else abs4rmsEnondep=0;
+  //mean sum of T( kinetic energy of secondary)x L(T) partition energy 
+  abs4sum_tl/=TotNbofEvents;     abs4sum_tl2/=TotNbofEvents;
+  G4double abs4rmssum_tl =abs4sum_tl2- abs4sum_tl*abs4sum_tl;
+  if(abs4rmssum_tl>0.) abs4rmssum_tl=std::sqrt(abs4rmssum_tl/TotNbofEvents);
+  else abs4rmssum_tl =0;
+  //mean kinetic energy of secondary particles (IDp==1) 
+  G4double abs4rmssum_t = 0.0;
+  if(abs4rec > 0) {
+    abs4sum_t/=abs4rec;     abs4sum_t2/=abs4rec;
+    abs4rmssum_t =abs4sum_t2- abs4sum_t*abs4sum_t;
+    if(abs4rmssum_t>0.) abs4rmssum_t=std::sqrt(abs4rmssum_t/abs4rec);  }
+  //mean number of steps:
+  abs4step/=TotNbofEvents;  abs4step2/=TotNbofEvents;
+  G4double abs4rmsSteps= abs4step2 -abs4step*abs4step;
+  if(abs4rmsSteps>0) abs4rmsSteps= std::sqrt(abs4rmsSteps/TotNbofEvents);
+  else abs4rmsSteps=0;
+	// mean dE/dx in absorber 4
+  G4double dEdx_abs4 = abs4fEdep/abs4len;
+	// mean niel dE/dx in absorber 4 
+  G4double dEdx_niel_abs4 = abs4niel/abs4len;
 
   //*************************************************
 
@@ -774,15 +918,14 @@ void Run::EndOfRun()
 
 
 
-//totniel
-  // PLEASE END MY MYSERY
+
+
   //..............................................................
 
   //G4double thickness  = fDetector->GetRadius();
   //Stopping Power and NIEL from simulation.
   // effective length
   G4double length=TrakLenPrim;
-
   // total energy loss  
   G4double meandEdx  = EnergyDeposit/length;
   // nuclear energy loss
@@ -883,43 +1026,40 @@ void Run::EndOfRun()
   G4cout << "\n proj Range = " << G4BestUnit(fProjRange,"Length")
          << "   rms = "        << G4BestUnit(projRms,  "Length");
   G4cout << "\n ===========================================================\n";
-  G4cout << " ================= GEOMETRIJOS parametrai==================";
+  G4cout << " ====================== GEOMETRY ===========================";
   G4cout << "\n ===========================================================\n";
   G4cout << " \n"; 
-  G4cout << " >>>>>>>>>>>>>>>>> Pirmasis sluoksnis <<<<<<<<<<<<<<<<<<<<<<<<\n";
-  G4cout << " \n"; 
-  G4cout << " Sluoksnio storis = " << G4BestUnit(fDetector->GetLength(0),"Length")<<G4endl;
-  G4cout << " Bendri absorberio matmenys : " << G4BestUnit(fDetector->GetSize(0), "Length") << G4endl;	
-  G4cout << " Medziaga: " << fDetector->GetMaterial(0) << G4endl;
-  G4cout << " Tankis: " << density/(g/cm3) << " g/cm3 " << G4endl;
-  G4cout << " -------------------- Dalelių parametrai -------------------- " << G4endl;
-  G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(abs2fEdep, "Energy") << " +/- " << G4BestUnit(abs2rmsEdep, "Energy")  << G4endl;	
-  G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(abs2niel, "Energy") << " +/- " << G4BestUnit(abs2rmsEnondep, "Energy")  << G4endl;	
-  G4cout << " Mean number of steps : \t\t" << abs2step << " +/- " << abs2rmsSteps << G4endl;
-  G4cout << " Primary track length : \t\t" << G4BestUnit(abs2len, "Length") << " +/- " << G4BestUnit(abs2rmsTLPrim,"Length") << G4endl; 
-  G4cout << " Mean dE/dx : \t\t\t\t" << dEdx_abs2/(MeV/cm) << " MeV/cm " << G4endl;
-  G4cout << " Mean NIEL dE/dx: \t\t\t" << dEdx_niel_abs2/(MeV/cm) << " MeV/cm " << G4endl;
-  G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abs2len/abs2step,"Length")<<  G4endl;
-  G4cout << " Steps per length [nm-1]: \t\t" << abs2step/(fDetector->GetLength(0)/nm) << G4endl;
-  G4cout << " \n"; 
-  G4cout << " >>>>>>>>>>>>>>>>> Antrasis sluoksnis <<<<<<<<<<<<<<<<<<<<<<<<\n";
-  G4cout << " \n"; 
-  G4cout << " Antrojo sluoksnio storis = " << G4BestUnit(fDetector->GetLength(1),"Length")<<G4endl;
-  G4cout << " Bendri antrojo absorberio matmenys : " << G4BestUnit(fDetector->GetSize(1), "Length") << G4endl;	
-  G4cout << " Medziaga: " << fDetector->GetMaterial(1) << G4endl;
-  G4cout << " Tankis: " << density2/(g/cm3) << " g/cm3 " << G4endl;
-  G4cout << " Antrojo sluoksnio pozicija: " << G4BestUnit(fDetector->GetPosition(0), "Length") << G4endl;	
-  G4ThreeVector pozicija = fDetector->GetPosition(0);
   
-  G4double ilgis = pozicija.z();
-  //G4cout << " pozicija " << ilgis/um << G4endl; //+(ilgis)
-  //G4cout << " det ilgis " << (fDetector->GetLength()/2)/um << G4endl;
-  G4double atstums = (fDetector->GetLength(0)/2)+ilgis-(fDetector->GetLength(1)/2);
+    G4ThreeVector pozicija1 = fDetector->GetPosition(0);
+    G4ThreeVector pozicija2 = fDetector->GetPosition(1);
+    G4ThreeVector pozicija3 = fDetector->GetPosition(2);
+    G4ThreeVector pozicija4 = fDetector->GetPosition(3);
+    
+    G4double ilgis1 = pozicija1.z();
+    G4double ilgis2 = pozicija2.z();
+    G4double ilgis3 = pozicija3.z();
+    G4double ilgis4 = pozicija4.z();
 
+  G4double atstums1 = (fDetector->GetLength(0)/2)+ilgis1-(fDetector->GetLength(1)/2);
+  if(atstums1/nm < 1e-5)
+  {
+  	atstums1 = 0.;
+  }
+  G4double atstums2 = (fDetector->GetLength(0)/2)+ilgis2-(fDetector->GetLength(2)/2);  
+  G4double atstums3 = (fDetector->GetLength(0)/2)+ilgis3-(fDetector->GetLength(3)/2);  
+  G4double atstums4 = (fDetector->GetLength(0)/2)+ilgis4-(fDetector->GetLength(4)/2);  
   
-  
-  G4cout << " Atstumas nuo pavirsiaus: " << G4BestUnit(atstums, "Length") << G4endl;	
-  G4cout << " -------------------- Dalelių parametrai -------------------- " << G4endl;
+  G4cout << " >>>>>>>>>>>>>>>>> MAIN LAYER <<<<<<<<<<<<<<<<<<<<<<<<\n";
+  G4cout << " Thickness = " << G4BestUnit(fDetector->GetLength(0),"Length") << " or surface layer thickness " << (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*atstums1/cm)/(1e+15) << "[TFU] " << G4endl;
+  G4cout << " Total layer dimensions : " << G4BestUnit(fDetector->GetSize(0), "Length") << G4endl;	
+  G4cout << " Material: " << fDetector->GetMaterial(0) << G4endl;
+  G4cout << " Density = " << density/(g/cm3) << " g/cm3 "  << ", or " << material->GetTotNbOfAtomsPerVolume()/(1/cm3) << " [at3] "  << G4endl;  
+  G4cout << " Composition: " << G4endl;
+  const G4double *atomDensVector1	= material->GetVecNbOfAtomsPerVolume();
+  G4double NoOfElements_material    	= material->GetNumberOfElements();
+  for (int i=0; i<NoOfElements_material; i++){
+  G4cout << " " << material->GetElement(i)->GetName() << " = " << atomDensVector1[i]/(1/cm3) << " [cm-3] " << G4endl;}
+  G4cout << " -------------------- Particle parameters -------------------- " << G4endl;
   G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(absfEdep, "Energy") << " +/- " << G4BestUnit(absrmsEdep, "Energy")  << G4endl;	
   G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(absniel, "Energy") << " +/- " << G4BestUnit(absrmsEnondep, "Energy")  << G4endl;	
   G4cout << " Mean number of steps : \t\t" << absstep << " +/- " << absrmsSteps << G4endl;
@@ -927,22 +1067,126 @@ void Run::EndOfRun()
   G4cout << " Mean dE/dx : \t\t\t\t" << dEdx_abs/(MeV/cm) << " MeV/cm " << G4endl;
   G4cout << " Mean NIEL dE/dx: \t\t\t" << dEdx_niel_abs/(MeV/cm) << " MeV/cm " << G4endl;
   G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abslen/absstep,"Length")<<  G4endl;
-  G4cout << " Steps per length [nm-1]: \t\t" << absstep/(fDetector->GetLength(1)/nm) << G4endl;
-  G4cout << " **************************************************************\n";
-  G4cout << " \t\t SUM " << G4endl;
-  G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(abs2fEdep+absfEdep, "Energy") << G4endl;	
-  G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(abs2niel+absniel, "Energy") << G4endl;	
-  G4cout << " Mean number of steps : \t\t" << abs2step+absstep << G4endl;
-  G4cout << " Primary track length : \t\t" << G4BestUnit(abs2len+abslen, "Length") << G4endl; 
-  G4cout << " Mean free path: \t\t\t" <<G4BestUnit((abs2len+abslen)/(abs2step+absstep),"Length")<<  G4endl;
-  G4cout << " **************************************************************\n";
-  G4cout << " \t\t In Between materials " << G4endl;
+  G4cout << " Steps per length [nm-1]: \t\t" << absstep/(fDetector->GetLength(0)/nm) << G4endl;
+  G4cout << " # of secondaries: \t\t\t" << absrec << " \t per primary : " << absrec/TotNbofEvents << G4endl;
+  G4cout << " Mean E of secondaries: \t\t" << G4BestUnit(abssum_t, "Energy") << " +/- " << G4BestUnit(absrmssum_t,"Energy") << G4endl;  
+  G4cout << " Mean damage en of secondaries: \t" << G4BestUnit(abssum_tl, "Energy") << " +/- " << G4BestUnit(absrmssum_tl,"Energy") << G4endl;    
+  G4cout << " \n"; 
+  
+  G4double NoOfElements_material2    	= material2->GetNumberOfElements();
+  G4cout << " >>>>>>>>>>>>>>>>> FIRST LAYER <<<<<<<<<<<<<<<<<<<<<<<<\n";
+  G4cout << " Thickness = " << G4BestUnit(fDetector->GetLength(1),"Length")<< " or " << (material2->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(1)/cm)/(1e+15) << " [TFU] "<< G4endl;
+  G4cout << " Layer dimensions : " << G4BestUnit(fDetector->GetSize(1), "Length") << G4endl;	
+  G4cout << " Material: " << fDetector->GetMaterial(1) << " or name: " << material2->GetName() << G4endl;
+  G4cout << " Density: " << density2/(g/cm3) << " g/cm3 " << ", or " << material2->GetTotNbOfAtomsPerVolume()/(1/cm3)  << " [at3] "  << G4endl;
+  const G4double *atomDensVector	= material2->GetVecNbOfAtomsPerVolume();
+  G4cout << " Composition: " << G4endl;
+  for (int i=0; i<NoOfElements_material2; i++){
+  G4cout << " " << material2->GetElement(i)->GetName() << " = " << atomDensVector[i]/(1/cm3) << " [cm-3] " << G4endl;}
+  G4cout << " Position of the layer: " << G4BestUnit(fDetector->GetPosition(0), "Length") << G4endl;	
+  G4cout << " Distance from the surface: " << G4BestUnit(atstums1, "Length") << G4endl;	
+  G4cout << " -------------------- Particle parameters -------------------- " << G4endl;
+  G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(abs1fEdep, "Energy") << " +/- " << G4BestUnit(abs1rmsEdep, "Energy")  << G4endl;	
+  G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(abs1niel, "Energy") << " +/- " << G4BestUnit(abs1rmsEnondep, "Energy")  << G4endl;	
+  G4cout << " Mean number of steps : \t\t" << abs1step << " +/- " << abs1rmsSteps << G4endl;
+  G4cout << " Primary track length : \t\t" << G4BestUnit(abs1len, "Length") << " +/- " << G4BestUnit(abs2rmsTLPrim,"Length") << G4endl; 
+  G4cout << " Mean dE/dx : \t\t\t\t" << dEdx_abs1/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean NIEL dE/dx: \t\t\t" << dEdx_niel_abs1/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abs1len/abs1step,"Length")<<  G4endl;
+  G4cout << " Steps per length [nm-1]: \t\t" << abs1step/(fDetector->GetLength(1)/nm) << G4endl;
+  G4cout << " # of secondaries: \t\t\t" << abs1rec << " \t per primary : " << abs1rec/TotNbofEvents << G4endl;
+  G4cout << " Mean E of secondaries: \t\t" << G4BestUnit(abs1sum_t, "Energy") << " +/- " << G4BestUnit(abs1rmssum_t,"Energy") << G4endl;  
+  G4cout << " Mean damage en of secondaries: \t" << G4BestUnit(abs1sum_tl, "Energy") << " +/- " << G4BestUnit(abs1rmssum_tl,"Energy") << G4endl;    
+  G4cout << " \n";  
+  
+  G4double NoOfElements_material3    	= material3->GetNumberOfElements();  
+  G4cout << " >>>>>>>>>>>>>>>>> SECOND LAYER <<<<<<<<<<<<<<<<<<<<<<<<\n";
+
+  G4cout << " Thickness = " << G4BestUnit(fDetector->GetLength(2),"Length")<< " or " << (material3->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(2)/cm)/(1e+15) << " [TFU] "<< G4endl;
+  G4cout << " Layer dimensions : " << G4BestUnit(fDetector->GetSize(2), "Length") << G4endl;	
+  G4cout << " Material: " << fDetector->GetMaterial(2) << G4endl;
+  G4cout << " Density: " << density3/(g/cm3) << " g/cm3 " << ", or " << material3->GetTotNbOfAtomsPerVolume()/(1/cm3)  << " [at3] "  << G4endl;
+  const G4double *atomDensVector3	= material3->GetVecNbOfAtomsPerVolume();
+  G4cout << " Composition: " << G4endl;
+  for (int i=0; i<NoOfElements_material3; i++)
+  	{
+  G4cout << " " << material3->GetElement(i)->GetName() << " = " << atomDensVector3[i]/(1/cm3) << " [cm-3] " << G4endl;
+  	}
+  G4cout << " Position of the layer: " << G4BestUnit(fDetector->GetPosition(1), "Length") << G4endl;	
+  G4cout << " Distance from the surface: " << G4BestUnit(atstums2, "Length") << G4endl;	
+  G4cout << " -------------------- Particle parameters -------------------- " << G4endl;
+  G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(abs2fEdep, "Energy") << " +/- " << G4BestUnit(abs2rmsEdep, "Energy")  << G4endl;	
+  G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(abs2niel, "Energy") << " +/- " << G4BestUnit(abs2rmsEnondep, "Energy")  << G4endl;	
+  G4cout << " Mean number of steps : \t\t" << abs2step << " +/- " << abs2rmsSteps << G4endl;
+  G4cout << " Primary track length : \t\t" << G4BestUnit(abs2len, "Length") << " +/- " << G4BestUnit(abs2rmsTLPrim,"Length") << G4endl; 
+  G4cout << " Mean dE/dx : \t\t\t\t" << dEdx_abs2/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean NIEL dE/dx: \t\t\t" << dEdx_niel_abs2/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abs2len/abs2step,"Length")<<  G4endl;
+  G4cout << " Steps per length [nm-1]: \t\t" << abs2step/(fDetector->GetLength(2)/nm) << G4endl;  
+  G4cout << " # of secondaries: \t\t\t" << abs2rec << " \t per primary : " << abs2rec/TotNbofEvents << G4endl;
+  G4cout << " Mean E of secondaries: \t\t" << G4BestUnit(abs2sum_t, "Energy") << " +/- " << G4BestUnit(abs2rmssum_t,"Energy") << G4endl;  
+  G4cout << " Mean damage en of secondaries: \t" << G4BestUnit(abs2sum_tl, "Energy") << " +/- " << G4BestUnit(abs2rmssum_tl,"Energy") << G4endl;    
+  G4cout << " \n";    
+
+  G4double NoOfElements_material4    	= material4->GetNumberOfElements();  
+  G4cout << " >>>>>>>>>>>>>>>>> THIRD LAYER <<<<<<<<<<<<<<<<<<<<<<<<\n";
+
+  G4cout << " Thickness = " << G4BestUnit(fDetector->GetLength(3),"Length")<< " or " << (material4->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(3)/cm)/(1e+15) << " [TFU] "<< G4endl;
+  G4cout << " Layer dimensions : " << G4BestUnit(fDetector->GetSize(3), "Length") << G4endl;	
+  G4cout << " Material: " << fDetector->GetMaterial(3) << G4endl;
+  G4cout << " Density: " << density4/(g/cm3) << " g/cm3 " << ", or " << material4->GetTotNbOfAtomsPerVolume()/(1/cm3)  << " [at3] "  << G4endl;
+  const G4double *atomDensVector4	= material4->GetVecNbOfAtomsPerVolume();
+  G4cout << " Composition: " << G4endl;
+  for (int i=0; i<NoOfElements_material4; i++)
+  	{
+  G4cout << " " << material4->GetElement(i)->GetName() << " = " << atomDensVector4[i]/(1/cm3) << " [cm-3] " << G4endl;
+  	}
+  G4cout << " Position of the layer: " << G4BestUnit(fDetector->GetPosition(2), "Length") << G4endl;	
+  G4cout << " Distance from the surface: " << G4BestUnit(atstums3, "Length") << G4endl;	
+  G4cout << " -------------------- Particle parameters -------------------- " << G4endl;
   G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(abs3fEdep, "Energy") << " +/- " << G4BestUnit(abs3rmsEdep, "Energy")  << G4endl;	
   G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(abs3niel, "Energy") << " +/- " << G4BestUnit(abs3rmsEnondep, "Energy")  << G4endl;	
-  G4cout << " Mean number of steps : \t\t" << abs3step << " +/- " << abs3rmsSteps << G4endl;
-  G4cout << " Primary track length : \t\t" << G4BestUnit(abs3len, "Length") << " +/- " << G4BestUnit(abs3rmsTLPrim,"Length") << G4endl;
-  G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abs3len/abs3step,"Length")<<  G4endl; 
-  G4cout << " **************************************************************\n"; 
+  G4cout << " Mean number of steps : \t\t" << abs3step << " +/- " << abs2rmsSteps << G4endl;
+  G4cout << " Primary track length : \t\t" << G4BestUnit(abs3len, "Length") << " +/- " << G4BestUnit(abs3rmsTLPrim,"Length") << G4endl; 
+  G4cout << " Mean dE/dx : \t\t\t\t" << dEdx_abs3/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean NIEL dE/dx: \t\t\t" << dEdx_niel_abs3/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abs3len/abs3step,"Length")<<  G4endl;
+  G4cout << " Steps per length [nm-1]: \t\t" << abs3step/(fDetector->GetLength(3)/nm) << G4endl;    
+  G4cout << " # of secondaries: \t\t\t" << abs3rec << " \t per primary : " << abs3rec/TotNbofEvents << G4endl;
+  G4cout << " Mean E of secondaries: \t\t" << G4BestUnit(abs3sum_t, "Energy") << " +/- " << G4BestUnit(abs3rmssum_t,"Energy") << G4endl;  
+  G4cout << " Mean damage en of secondaries: \t" << G4BestUnit(abs3sum_tl, "Energy") << " +/- " << G4BestUnit(abs3rmssum_tl,"Energy") << G4endl;    
+  G4cout << " \n";  
+  
+  G4double NoOfElements_material5    	= material5->GetNumberOfElements();  
+  G4cout << " >>>>>>>>>>>>>>>>> FOURTH LAYER <<<<<<<<<<<<<<<<<<<<<<<<\n";
+
+  G4cout << " Thickness = " << G4BestUnit(fDetector->GetLength(4),"Length")<< " or " << (material5->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(4)/cm)/(1e+15) << " [TFU] "<< G4endl;
+  G4cout << " Layer dimensions : " << G4BestUnit(fDetector->GetSize(4), "Length") << G4endl;	
+  G4cout << " Material: " << fDetector->GetMaterial(4) << G4endl;
+  G4cout << " Density: " << density5/(g/cm3) << " g/cm3 " << ", or " << material5->GetTotNbOfAtomsPerVolume()/(1/cm3)  << " [at3] "  << G4endl;
+  const G4double *atomDensVector5	= material4->GetVecNbOfAtomsPerVolume();
+  G4cout << " Composition: " << G4endl;
+  for (int i=0; i<NoOfElements_material5; i++)
+  	{
+  G4cout << " " << material5->GetElement(i)->GetName() << " = " << atomDensVector5[i]/(1/cm3) << " [cm-3] " << G4endl;
+  	}
+  G4cout << " Position of the layer: " << G4BestUnit(fDetector->GetPosition(3), "Length") << G4endl;	
+  G4cout << " Distance from the surface: " << G4BestUnit(atstums4, "Length") << G4endl;	
+  G4cout << " -------------------- Particle parameters -------------------- " << G4endl;
+  G4cout << " Ionizing energy loss : \t\t" << G4BestUnit(abs4fEdep, "Energy") << " +/- " << G4BestUnit(abs4rmsEdep, "Energy")  << G4endl;	
+  G4cout << " Non ionizing energy loss [NIEL] : \t" << G4BestUnit(abs4niel, "Energy") << " +/- " << G4BestUnit(abs4rmsEnondep, "Energy")  << G4endl;	
+  G4cout << " Mean number of steps : \t\t" << abs4step << " +/- " << abs4rmsSteps << G4endl;
+  G4cout << " Primary track length : \t\t" << G4BestUnit(abs4len, "Length") << " +/- " << G4BestUnit(abs4rmsTLPrim,"Length") << G4endl; 
+  G4cout << " Mean dE/dx : \t\t\t\t" << dEdx_abs4/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean NIEL dE/dx: \t\t\t" << dEdx_niel_abs4/(MeV/cm) << " MeV/cm " << G4endl;
+  G4cout << " Mean free path: \t\t\t" <<G4BestUnit(abs4len/abs4step,"Length")<<  G4endl;
+  G4cout << " Steps per length [nm-1]: \t\t" << abs4step/(fDetector->GetLength(4)/nm) << G4endl;    
+  G4cout << " # of secondaries: \t\t\t" << abs4rec << " \t per primary : " << abs4rec/TotNbofEvents << G4endl;
+  G4cout << " Mean E of secondaries: \t\t" << G4BestUnit(abs4sum_t, "Energy") << " +/- " << G4BestUnit(abs4rmssum_t,"Energy") << G4endl;  
+  G4cout << " Mean damage en of secondaries: \t" << G4BestUnit(abs4sum_tl, "Energy") << " +/- " << G4BestUnit(abs4rmssum_tl,"Energy") << G4endl;    
+  G4cout << " \n";       
+
+   G4cout << " **************************************************************\n"; 
   G4cout << " Max Step size : \t\t\t" <<G4BestUnit(fDetector->GetMaxStep(),"Length")<<  G4endl; 
 	rbs_angle = fDetector->GetRBSAngle()/degree;
   G4cout << " RBS detector angle: \t\t\t" << rbs_angle << " degrees " << G4endl;
@@ -953,13 +1197,17 @@ void Run::EndOfRun()
   G4cout << " RBS evaluation was: \t\t\t" ;
   if (fDetector->GetRBSCalc() == 1) { G4cout << "ENABLED " << G4endl; };
   if (fDetector->GetRBSCalc() == 0) { G4cout << "DISABLED " << G4endl; };
+  G4cout << " MS evaluation was: \t\t\t" ;
+  if (fDetector->GetMSCalc() == 1) { G4cout << "ENABLED " << G4endl; };
+  if (fDetector->GetMSCalc() == 0) { G4cout << "DISABLED " << G4endl; };  
+  G4cout << " MS stopping corrections were:   \t" ;
+  if (fDetector->GetUseMSCorrections() == 1) { G4cout << "ENABLED " << G4endl; };
+  if (fDetector->GetUseMSCorrections() == 0) { G4cout << "DISABLED " << G4endl; };  
+  G4cout << " Constant scattering angle: \t\t" ;
+  if (fDetector->GetConstAngle() == 1) { G4cout << "ENABLED " << G4endl; };
+  if (fDetector->GetConstAngle() == 0) { G4cout << "DISABLED " << G4endl; };       
+  G4cout << " RBS minimum ROI : \t\t\t" << G4BestUnit(fDetector->GetRBSROImin(), "Energy") << G4endl;
   G4cout << " \n";
-  G4cout << " **************************************************************\n";
-  G4cout << " ***************** Detektoriai ********************************\n";
-  G4cout << " Detektoriu matmenys: "<< G4BestUnit(fDetector->GetDetectorSizes(), "Length") << G4endl;
-  G4cout << " Detektoriu medziaga: "<< fDetector->GetDetectorMaterial() << G4endl;
-  G4cout << " Detektoriu pozicijos: "<< G4BestUnit(fDetector->GetDetectorDistance(0), "Length") << "  " << G4BestUnit(fDetector->GetDetectorDistance(1), "Length") << "  " << G4BestUnit(fDetector->GetDetectorDistance(2), "Length") << "  " << G4BestUnit(fDetector->GetDetectorDistance(3), "Length") << G4endl;
-
 
 
   G4double chan = hit/4;
@@ -971,14 +1219,12 @@ void Run::EndOfRun()
     detKinEn/=hit;     detKinEn2/=hit;
     rmssum_kinen =detKinEn2- detKinEn*detKinEn;
     if(rmssum_kinen>0.) rmssum_kinen=std::sqrt(rmssum_kinen/chan);  }
-  //
-
 
   G4cout << " **************************************************** " << G4endl;
   G4cout 
     << " Projected range = " << G4BestUnit(projectedR,"Length")
     << " +- " << G4BestUnit( rmsPR,"Length")<< G4endl;
-  G4cout << " Kristalo pasukimo kampas x y ir z kryptimis: " << fDetector->GetAngles()/degree << " degrees " << G4endl;
+  G4cout << " Rotation of the sample: " << fDetector->GetAngles()/degree << " degrees " << G4endl;
     
   G4cout << " **************************************************** " << G4endl;
   G4cout << " # of particles that reaches last detector " << hit/4 << G4endl;
@@ -988,108 +1234,114 @@ void Run::EndOfRun()
   G4cout << " Mean KinEn of particles reaching 4th detector = "<<G4BestUnit(detKinEn,"Energy")
                 <<" +/- "  <<G4BestUnit(rmssum_kinen,"Energy")<<G4endl; 
   G4cout << " ****************************************************** " << G4endl;
-  G4cout << " # of backscattered primaries " << rbs << " see backscattered.txt for more info. " << G4endl;
-  G4cout << " # of secondaries generated " << second << " see secondaries.txt for more info. " << G4endl;
-  G4cout << " ****************************************************** " << G4endl;
-  G4cout << " ****************************************************** " << G4endl;
-  G4cout << " DON'T FORGET TO FLUSH secondaries AND backscattered FILES " << G4endl;
-  G4cout << " ****************************************************** " << G4endl;
-
-  G4cout << " ****************************************************** " << G4endl;
-
-  G4cout << " number of entries : " << entry_sd << G4endl; 
-  //G4double sum_entries = entry_sdx + entry_sd;
-  //G4cout << " sum of entries " << sum_entries << " per particle " << sum_entries/numberOfEvent << G4endl;
-  //G4cout << " entry density, 1 : " << entry_sdx/(abslen/um) << " and 2 : " << entry_sd/(abs2len/um) << G4endl;
-  //........................................................
-  G4cout << " ****************************************************** " << G4endl;
-  G4cout << " ************ Eksperimento geometrija ***************** " << G4endl;
-  G4cout << " ****************************************************** " << G4endl;  
+  G4double no_of_steps_per_particle = entry_sd/numberOfEvent;
+  G4double no_of_reach_per_particle = entry_reach/numberOfEvent;
+  G4cout << " number of steps : " << no_of_steps_per_particle << G4endl; 
+  G4cout << " number of entries reached histo : " << no_of_reach_per_particle << G4endl;
   
+  G4cout << " average number of entries per step : " << no_of_reach_per_particle/no_of_steps_per_particle << G4endl;
+  
+  G4double total_step_length =  total_step/numberOfEvent;
+  G4cout << " total step : " << G4BestUnit(total_step_length, "Length") << G4endl;
+  G4cout << " average step length: " << G4BestUnit(total_step_length/no_of_steps_per_particle, "Length") << G4endl;
+  G4cout << " ****************************************************** " << G4endl;
+  G4cout << " ******************** GEOMETRY ************************ " << G4endl;
+  G4cout << " ****************************************************** " << G4endl;  
+
+
+
+
+  G4cout << " Angle of incidence: " << (angle_of_incidence/numberOfEvent)/degree << " [degree] " << G4endl;
+  G4cout << " Primary particles " << Particle << " with energy: " << G4BestUnit(primary_energy/TotNbofEvents, "Energy") << G4endl;
+
   G4double plotis[4] = {fDetector->GetLength(1), fDetector->GetLength(2), fDetector->GetLength(3), fDetector->GetLength(4)};
   
   
   G4ThreeVector pozicija_visu[4] = {fDetector->GetPosition(0),fDetector->GetPosition(1),fDetector->GetPosition(2),fDetector->GetPosition(3)};
   G4double ilgis_visu[4] = {pozicija_visu[0].z(), pozicija_visu[1].z(), pozicija_visu[2].z(), pozicija_visu[3].z()};
-  
-  G4double atstumas_visu[4] = {0}; 
-  for (int i=0; i<4; i++)
-  	{
-  		atstumas_visu[i] = -(fDetector->GetLength(0)/2)-ilgis_visu[i]+plotis[i]/2; 
-  		//G4cout << " atstumas " << i << " " << abs(atstumas_visu[i])/um << G4endl;
-  	}
-  	
    G4double atstumas_tarp_gretimu[3];
    for (int i=0; i<3; i++)
    	{
    		atstumas_tarp_gretimu[i] = (ilgis_visu[i+1]-plotis[i+1]/2)-(ilgis_visu[i]+plotis[i]/2);
-
-   		//G4cout << " atstumas " << i << " " << atstumas_tarp_gretimu[i]/um << G4endl;	
-   		
    	}
 
   
   G4cout << " Materials: \n " << G4endl;
-  G4cout << " X = " << fDetector->GetMaterialM(0)->GetName() << G4endl;
-  G4cout << " A = " << fDetector->GetMaterialM(1)->GetName() << G4endl;
-  G4cout << " B = " << fDetector->GetMaterialM(2)->GetName() << G4endl;
-  G4cout << " C = " << fDetector->GetMaterialM(3)->GetName() << G4endl;
-  G4cout << " D = " << fDetector->GetMaterialM(4)->GetName() << G4endl;
+  G4cout << " X = " << material->GetName() << G4endl;
+  G4cout << " A = " << material2->GetName() << G4endl;
+  G4cout << " B = " << material3->GetName() << G4endl;
+  G4cout << " C = " << material4->GetName() << G4endl;
+  G4cout << " D = " << material5->GetName() << G4endl;
   G4cout << " \n" << G4endl;
-  
-    G4cout << " " << G4BestUnit(atstums, "Length") <<  " " << G4BestUnit(plotis[0], "Length") << " "<< G4BestUnit(atstumas_tarp_gretimu[0], "Length")  <<  "  " << G4BestUnit(plotis[1], "Length") << "  " << G4BestUnit(atstumas_tarp_gretimu[1], "Length") <<  "  " << G4BestUnit(plotis[2], "Length") << "  "<<G4BestUnit(atstumas_tarp_gretimu[2], "Length") <<  "  " << G4BestUnit(plotis[3], "Length") << "  " << G4endl;
-  
-  
-  
-  G4cout << " XXXXX->|<-AAAAA->|<-XXXXX->|<-BBBBB->|<-XXXXX->|<-CCCCC->|<-XXXXX->|<-DDDD->|<-XXXX" << G4endl;
 
-  G4cout << " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " << G4endl;
-  G4cout << " |<-------------- Substrate " << G4BestUnit(fDetector->GetLength(0), "Length") << " --------------------------------------------->| " << G4endl;
+  G4double final_dist = fDetector->GetLength(0)/2 - ilgis_visu[3] - plotis[3]/2;
+	//G4cout << " test dist " << (fDetector->GetLength(0)/2 - ilgis_visu[3] - plotis[3]/2)/nm << G4endl;
+
+  G4double a = 1e+15;
+  //G4double TFU0 = (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(0)/cm)/a;
+  G4double TFU1 = (material2->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(1)/cm)/a;
+  G4double TFU2 = (material3->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(2)/cm)/a;
+  G4double TFU3 = (material4->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(3)/cm)/a;
+  G4double TFU4 = (material5->GetTotNbOfAtomsPerVolume()/(1/cm3)*fDetector->GetLength(4)/cm)/a;  
+  G4double TFU5 = (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*final_dist/cm)/a; 
+
+
+  G4double TFU01 = (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*atstums1/cm)/a; 
+  G4double TFU12 = (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*atstumas_tarp_gretimu[0]/cm)/a;
+  G4double TFU23 = (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*atstumas_tarp_gretimu[1]/cm)/a;
+  G4double TFU34 = (material->GetTotNbOfAtomsPerVolume()/(1/cm3)*atstumas_tarp_gretimu[2]/cm)/a;
+
+  G4cout << " TFU UNITS " << G4endl;
+  G4cout << " " << TFU01 << " || " << TFU1 << " || " << TFU12 << " || " << TFU2 << " || " << TFU23 << " || " << TFU3 << " || " << TFU34 << " || " << TFU4 << " || " << TFU5 << G4endl;
+  
+    G4cout << " " << G4BestUnit(atstums1, "Length") <<  "  " << G4BestUnit(plotis[0], "Length") << "  "<< G4BestUnit(atstumas_tarp_gretimu[0], "Length")  <<  "  " << G4BestUnit(plotis[1], "Length") << "  " << G4BestUnit(atstumas_tarp_gretimu[1], "Length") <<  "  " << G4BestUnit(plotis[2], "Length") << "  "<<G4BestUnit(atstumas_tarp_gretimu[2], "Length") <<  "  " << G4BestUnit(plotis[3], "Length") << "  " << G4BestUnit(final_dist, "Length") <<G4endl;
+  
+  
+  G4cout << " XXXXXX->|<-AAAAAA->|<-XXXXXX->|<-BBBBBB->|<-XXXXXX->|<-CCCCCC->|<-XXXXXX->|<-DDDDDD->|<-XXXXXX" << G4endl;
+
+  G4cout << " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " << G4endl;
+  G4cout << " |<-------------- Substrate " << G4BestUnit(fDetector->GetLength(0), "Length") << " --------------------------------------------------->| " << G4endl;
   G4cout << "                                                        " << G4endl;
 
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance(); 
-  if (analysisManager->IsActive() ) {      
-
-
-
-	G4double total_step_length = total_step/numberOfEvent;
-
-
-	//analysisManager->OpenFile();
-  //normalize histograms
-  //G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();       
+  if (analysisManager->IsActive() ) 
+  {      
 	G4double fac; 
-  for (G4int ih=3; ih<15; ih++) {
-
-    G4double binWidth = analysisManager->GetH1Width(ih);
+  	for (G4int ih=3; ih<15; ih++) 
+  	{
+	
+		G4double binWidth = analysisManager->GetH1Width(ih);
     //G4double unit     = analysisManager->GetH1Unit(ih);  
 
     //fac = unit/binWidth;
-    fac = (1./(numberOfEvent*binWidth))*(mm/MeV);
-	analysisManager->ScaleH1(2,fac);
+    		fac = (1./(numberOfEvent*binWidth))*(mm/MeV);
+			analysisManager->ScaleH1(2,fac);
     //fac = unit/binWidth;
-    fac = (1./totstep); 
-	analysisManager->ScaleH1(15,fac);
-    fac = (1./(numberOfEvent*binWidth))*(mm/keV);
-	analysisManager->ScaleH1(17,fac);
-    fac = (1./numberOfEvent);
-	analysisManager->ScaleH1(18,fac);
-    fac = (1./(totstep*binWidth));
-	analysisManager->ScaleH1(19,fac);
-    }
-    for (G4int ih=20; ih<40; ih++) {
-    //fac = (1./numberOfEvent);
-    fac = (1./(numberOfEvent*total_step_length));
-    analysisManager->ScaleH1(ih,fac);
+    		fac = (1./totstep); 
+			analysisManager->ScaleH1(15,fac);
+    		fac = (1./(numberOfEvent*binWidth))*(mm/keV);
+			analysisManager->ScaleH1(17,fac);
+    		fac = (1./numberOfEvent);
+			analysisManager->ScaleH1(18,fac);
+    		fac = (1./(totstep*binWidth));
+			analysisManager->ScaleH1(19,fac);
+    	}
+    	for (G4int ih=20; ih<53; ih++) 
+    	{
+
+    		G4double binW = analysisManager->GetH1Width(ih);
+    
+    		G4double ave_step = total_step_length/no_of_steps_per_particle;
+    		G4double RBS_norm_dist = 0.1*nm;
+    		G4double norm = ave_step/RBS_norm_dist;
+    		G4double exponent = exp(1);
+    		fac = (1/(exponent*norm*no_of_steps_per_particle*numberOfEvent*binW));	// latest, 2021-02-23
+    		analysisManager->ScaleH1(ih,fac);
 	} 
-	G4double BW1 = analysisManager->GetH1Width(16);
-        G4double fcc = (1./(BW1*numberOfEvent));
-	analysisManager->ScaleH1(16,fcc);
+		G4double BW1 = analysisManager->GetH1Width(16);
+        	G4double fcc = (1./(BW1*numberOfEvent));
+		analysisManager->ScaleH1(16,fcc);
 
-
-    //G4double BW = analysisManager->GetH1Width(39);  
-    G4double sme = (mm/MeV)/(numberOfEvent);// * BW);
-    analysisManager->ScaleH1(39, sme);
 
 }
   //remove all contents in fProcCounter, fCount 
