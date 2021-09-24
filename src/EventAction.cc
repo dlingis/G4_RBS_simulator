@@ -1193,7 +1193,6 @@ void EventAction::EndOfEventAction(const G4Event* evt)
 				{
 					l3_parameters[h] = 0;
 				}
-				delete[] l3_parameters;
 	    			// filling of RBS histograms
 				if (energy_left > ROI_region)
 				{
